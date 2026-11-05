@@ -73,6 +73,10 @@ a.btn{text-decoration:none}
 <noscript><p style="padding:24px;text-align:center">กรุณาเปิดใช้งาน JavaScript เพื่อใช้งานเว็บไซต์</p></noscript>
 <div id="app"><div id="v"></div><nav id="nv"></nav></div>
 <script>
+/* CONFIGURATION SUPABASE */
+const SB_URL='https://qnhbiwpzzzakdikonuxt.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFuaGJpd3B6enpha2Rpa29udXh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM4ODMyNzUsImV4cCI6MjEwOTQ1OTI3NX0.Fyi9UTN8rNvpLA6m1pcM5uz03X2iFVHXkU5wtHL44SU';
+
 const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&','<':'<','>':'>','"':'"'}[c]));
 const EM=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CATS=[['👜','กระเป๋า'],['📱','มือถือ'],['🔑','กุญแจ'],['🪪','บัตรนักศึกษา'],['📓','เอกสาร'],['👕','เครื่องแต่งกาย'],['✏️','อุปกรณ์การเรียน'],['⋯','อื่นๆ']];
@@ -262,7 +266,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){const s=document.qu
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[role=button]')){e.preventDefault();e.target.click()}});
 
 /* ===== avatar, real map, shared database ===== */
-const SB_URL='https://qnhbiwpzzzakdikonuxt.supabase.co',SB_KEY='sb_publishable_ypj2F_e4KYDMLW01uVwe-w_AbB09ONK';
 const ON=!!(SB_URL&&SB_KEY&&!SB_KEY.startsWith('sb_publishable_'));
 const TILE='https://tile.openstreetmap.org/{z}/{x}/{y}.png',VB='100.558,13.7515,100.5715,13.7405';
 let SES=null,PICK=null,LM=null,GEO={};try{SES=JSON.parse(localStorage.getItem('slf_s')||'null')}catch(e){}try{GEO=JSON.parse(localStorage.getItem('slf_geo')||'{}')}catch(e){}
