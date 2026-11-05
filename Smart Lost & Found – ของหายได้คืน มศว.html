@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Smart Lost & Found – ของหายได้คืน มศว</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f1f5f9;--card:#fff;--text:#1e293b;--mute:#64748b;--line:#e2e8f0;--pri:#e11d48;--pri2:#fff1f2;--ok:#059669;--ok2:#ecfdf5;--warn:#d97706;--warn2:#fffbeb;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--mute:#94a3b8;--line:#334155;--pri:#fb7185;--pri2:#4c0519;--ok:#34d399;--ok2:#022c22;--warn:#fbbf24;--warn2:#422006;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--mute:#94a3b8;--line:#334155;--pri:#fb7185;--pri2:#4c0519;--ok:#34d399;--ok2:#022c22;--warn:#fbbf24;--warn2:#422006;color-scheme:dark}
+*{box-sizing:border-box;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--text);font-family:'Prompt',system-ui,sans-serif;font-size:15px;max-width:520px;margin:0 auto;padding-bottom:84px}
+header{padding:18px 16px 12px;background:var(--pri);color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) header{background:#9f1239}}
+header h1{font-size:19px;font-weight:600}header p{font-size:12.5px;opacity:.9;margin-top:2px}
+main{padding:14px}
+.search{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit;margin-bottom:10px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px}
+.chip{flex:none;padding:7px 14px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit;font-size:13px}
+.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:12px;display:flex;gap:12px;cursor:pointer}
+.thumb{width:76px;height:76px;border-radius:12px;background:var(--bg);flex:none;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:30px}
+.card h3{font-size:15px;font-weight:500}.meta{font-size:12.5px;color:var(--mute);margin-top:3px}
+.tag{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:99px;margin-bottom:5px;font-weight:500}
+.lost{background:var(--pri2);color:var(--pri)}.found{background:var(--ok2);color:var(--ok)}.done{background:var(--bg);color:var(--mute)}
+nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:var(--card);border-top:1px solid var(--line);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+nav button{flex:1;background:none;border:0;color:var(--mute);font:inherit;font-size:11.5px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button span{font-size:21px}nav button.on{color:var(--pri);font-weight:600}
+label{display:block;font-size:13px;color:var(--mute);margin:12px 0 5px}
+input,select,textarea{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit}
+.seg{display:flex;gap:8px}.seg button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit}
+.seg .on.l{background:var(--pri);color:#fff;border-color:var(--pri)}.seg .on.f{background:var(--ok);color:#fff;border-color:var(--ok)}
+.btn{width:100%;padding:13px;border:0;border-radius:12px;background:var(--pri);color:#fff;font:inherit;font-weight:500;margin-top:16px}
+.btn.alt{background:var(--card);color:var(--text);border:1px solid var(--line);margin-top:8px}.btn.ok{background:var(--ok)}
+.empty{text-align:center;color:var(--mute);padding:40px 10px}
+.box{background:var(--warn2);color:var(--warn);border-radius:14px;padding:12px;font-size:13px;margin-bottom:12px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{background:var(--card);width:100%;max-width:520px;max-height:90%;overflow:auto;border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+.sheet img.big{width:100%;max-height:240px;object-fit:cover;border-radius:14px;margin-bottom:10px}
+.row{display:flex;gap:8px;font-size:14px;margin:6px 0}.row b{min-width:78px;font-weight:500;color:var(--mute)}
+.spot{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.spot b{font-weight:500}.spot p{font-size:12.5px;color:var(--mute);margin-top:3px}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:13px;z-index:30}
+</style>
+</head>
+<body>
+<header><h1>🎒 Smart Lost & Found</h1><p>ของหายได้คืน · มหาวิทยาลัยศรีนครินทรวิโรฒ</p></header>
+<main id="app"></main>
+<nav id="nav"></nav>
+<script>
+const CATS={'📱':'อุปกรณ์อิเล็กทรอนิกส์','💳':'บัตร/เอกสาร','🎒':'กระเป๋า','🔑':'กุญแจ','👕':'เสื้อผ้า/เครื่องประดับ','📚':'หนังสือ/เครื่องเขียน','📦':'อื่น ๆ'};
+const PLACES=['อาคารเรียนรวม','ห้องสมุดกลาง','โรงอาหารกลาง','อาคารกิจกรรมนิสิต','สนามกีฬา','ป้ายรถรับส่ง','ลานจอดรถ'];
+const SPOTS=[['🏢','จุดบริการนิสิต (ชั้น 1 อาคารกิจกรรม)','จันทร์–ศุกร์ 08.30–16.30 น. มีเจ้าหน้าที่ดูแล'],['📚','เคาน์เตอร์ห้องสมุดกลาง','เปิดตามเวลาห้องสมุด มีกล้องวงจรปิด'],['🛡️','ป้อมรักษาความปลอดภัยประตูหลัก','เปิดตลอด 24 ชม.'],['🍜','โรงอาหารกลาง โซนหน้าร้านน้ำ','คนพลุกพล่าน ช่วงพักเที่ยง']];
+const seed=()=>{const d=n=>Date.now()-n*864e5;return[
+{id:1,type:'lost',cat:'📱',title:'iPhone 13 สีน้ำเงิน เคสใส',desc:'ทำหล่นแถวทางเดินไปห้องสมุด มีสติกเกอร์แมวหลังเครื่อง',place:'ห้องสมุดกลาง',contact:'LINE: nong_m',date:d(1),status:'open'},
+{id:2,type:'found',cat:'💳',title:'บัตรนิสิต ชื่อ ส. ใจดี',desc:'เก็บได้ที่โต๊ะโรงอาหาร ฝากไว้ที่จุดบริการนิสิตแล้ว',place:'โรงอาหารกลาง',contact:'จุดบริการนิสิต',date:d(2),status:'open'},
+{id:3,type:'found',cat:'🔑',title:'พวงกุญแจ มีรีโมทรถ Honda',desc:'พวงกุญแจห้อยตุ๊กตาหมี 3 ดอก',place:'ลานจอดรถ',contact:'โทร 081-234-5678',date:d(0),status:'open'},
+{id:4,type:'lost',cat:'🎒',title:'กระเป๋าเป้สีดำ Jansport',desc:'ในกระเป๋ามีสมุดโน้ตและกล่องดินสอสีเขียว',place:'อาคารเรียนรวม',contact:'IG: swu.lost01',date:d(3),status:'open'}]};
+let S;try{S=JSON.parse(localStorage.getItem('lf2')||'null')}catch(e){}
+if(!S)S={items:seed(),next:10};
+let tab='home',flt='all',q='',form={type:'lost',cat:'📱',img:''};
+const save=()=>{try{localStorage.setItem('lf2',JSON.stringify(S))}catch(e){toast('พื้นที่เก็บข้อมูลเต็ม')}};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ago=t=>{const d=Math.floor((Date.now()-t)/864e5);return d<1?'วันนี้':d+' วันที่แล้ว'};
+function toast(m){const e=document.createElement('div');e.className='toast';e.textContent=m;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)}
+const words=s=>(s||'').toLowerCase().split(/[\s,./()\-]+/).filter(w=>w.length>1);
+function matches(it){const a=new Set(words(it.title+' '+it.desc));return S.items.filter(o=>o.id!==it.id&&o.type!==it.type&&o.status==='open').map(o=>{let sc=0;if(o.cat===it.cat)sc+=2;if(o.place===it.place)sc+=1;words(o.title+' '+o.desc).forEach(w=>{if(a.has(w))sc+=2});return{o,sc}}).filter(x=>x.sc>=3).sort((a,b)=>b.sc-a.sc).slice(0,3).map(x=>x.o)}
+function nav(){const t=[['home','🏠','หน้าแรก'],['post','➕','แจ้งของ'],['spots','📍','จุดนัดรับ']];$('#nav').innerHTML=t.map(([k,i,l])=>`<button class="${tab===k?'on':''}" onclick="go('${k}')"><span>${i}</span>${l}</button>`).join('')}
+function go(k){tab=k;render()}
+function card(it){const lab={lost:'🔍 ตามหา',found:'✅ เก็บได้'}[it.type];return`<div class="card" onclick="openIt(${it.id})">${it.img?`<img class="thumb" src="${it.img}" alt="">`:`<div class="thumb">${it.cat}</div>`}<div style="min-width:0"><span class="tag ${it.status==='done'?'done':it.type}">${it.status==='done'?'ส่งคืนแล้ว':lab}</span><h3>${esc(it.title)}</h3><div class="meta">📍 ${esc(it.place)} · ${ago(it.date)}</div></div></div>`}
+function home(){const ws=words(q);const list=S.items.filter(i=>(flt==='all'||i.type===flt)&&(!ws.length||ws.some(w=>(i.title+i.desc+i.place+CATS[i.cat]).toLowerCase().includes(w)))).sort((a,b)=>(a.status==='done')-(b.status==='done')||b.date-a.date);
+return`<input class="search" id="q" placeholder="🔎 ค้นหา เช่น กระเป๋า บัตร กุญแจ" value="${esc(q)}" oninput="q=this.value;list()"><div class="chips">${[['all','ทั้งหมด'],['lost','ของหาย'],['found','เก็บได้']].map(([k,l])=>`<button class="chip ${flt===k?'on':''}" onclick="flt='${k}';render()">${l}</button>`).join('')}</div><div id="list">${listHtml(list)}</div>`}
+const listHtml=l=>l.length?l.map(card).join(''):'<div class="empty">ไม่พบรายการ<br>ลองเปลี่ยนคำค้นหา หรือแจ้งของใหม่</div>';
+function list(){const ws=words(q);const l=S.items.filter(i=>(flt==='all'||i.type===flt)&&(!ws.length||ws.some(w=>(i.title+i.desc+i.place+CATS[i.cat]).toLowerCase().includes(w)))).sort((a,b)=>(a.status==='done')-(b.status==='done')||b.date-a.date);$('#list').innerHTML=listHtml(l)}
+function post(){return`<div class="seg"><button class="${form.type==='lost'?'on l':''}" onclick="sync();form.type='lost';render()">🔍 ของหาย</button><button class="${form.type==='found'?'on f':''}" onclick="sync();form.type='found';render()">✅ เก็บของได้</button></div>
+<label>ประเภท</label><select id="cat">${Object.entries(CATS).map(([k,v])=>`<option value="${k}" ${form.cat===k?'selected':''}>${k} ${v}</option>`).join('')}</select>
+<label>ชื่อสิ่งของ *</label><input id="title" placeholder="เช่น กระเป๋าสตางค์สีน้ำตาล" value="${esc(form.title)}">
+<label>รายละเอียด / จุดสังเกต</label><textarea id="desc" rows="3" placeholder="สี ยี่ห้อ ตำหนิ สิ่งที่อยู่ข้างใน">${esc(form.desc)}</textarea>
+<label>สถานที่</label><select id="place">${PLACES.map(p=>`<option ${form.place===p?'selected':''}>${p}</option>`).join('')}</select>
+<label>ช่องทางติดต่อ *</label><input id="contact" placeholder="LINE / IG / เบอร์โทร" value="${esc(form.contact)}">
+<label>รูปภาพ (ถ้ามี)</label><input type="file" accept="image/*" onchange="pick(this)">${form.img?`<img src="${form.img}" alt="" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-top:8px">`:''}
+<button class="btn" onclick="submit()">โพสต์ประกาศ</button>`}
+function sync(){['title','desc','place','contact','cat'].forEach(k=>{const e=$('#'+k);if(e)form[k]=e.value})}
+function pick(inp){const f=inp.files[0];if(!f)return;sync();const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,360/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);form.img=c.toDataURL('image/jpeg',.7);render()};im.src=r.result};r.readAsDataURL(f)}
+function submit(){sync();if(!form.title||!form.contact){toast('กรอกชื่อสิ่งของและช่องทางติดต่อ');return}
+const it={id:S.next++,type:form.type,cat:form.cat||'📱',title:form.title,desc:form.desc||'',place:form.place||PLACES[0],contact:form.contact,img:form.img,date:Date.now(),status:'open'};S.items.unshift(it);save();form={type:form.type,cat:'📱',img:''};tab='home';flt='all';q='';render();openIt(it.id,true)}
+function spots(){return`<div class="box">🛡️ เพื่อความปลอดภัย แนะนำให้นัดรับของในจุดที่มีคนพลุกพล่านหรือมีเจ้าหน้าที่ และไม่ควรโอนเงินก่อนรับของ</div>${SPOTS.map(([i,n,d])=>`<div class="spot"><b>${i} ${n}</b><p>${d}</p></div>`).join('')}`}
+function openIt(id,fresh){const it=S.items.find(i=>i.id===id);if(!it)return;const m=matches(it);const el=document.createElement('div');el.className='modal';el.onclick=e=>{if(e.target===el)el.remove()};
+el.innerHTML=`<div class="sheet">${fresh?'<div class="box" style="background:var(--ok2);color:var(--ok)">โพสต์เรียบร้อยแล้ว ✓</div>':''}${it.img?`<img class="big" src="${it.img}" alt="">`:''}<span class="tag ${it.type}">${it.type==='lost'?'🔍 ตามหา':'✅ เก็บได้'}</span><h2 style="font-size:18px;font-weight:600">${it.cat} ${esc(it.title)}</h2>
+<div class="row"><b>ประเภท</b>${CATS[it.cat]}</div><div class="row"><b>รายละเอียด</b>${esc(it.desc)||'-'}</div><div class="row"><b>สถานที่</b>${esc(it.place)}</div><div class="row"><b>ติดต่อ</b>${esc(it.contact)}</div><div class="row"><b>เมื่อ</b>${ago(it.date)}</div>
+${m.length?`<div class="box" style="margin-top:12px">✨ รายการที่อาจตรงกัน<br>${m.map(o=>`<div style="margin-top:6px;cursor:pointer;text-decoration:underline" onclick="this.closest('.modal').remove();openIt(${o.id})">${o.cat} ${esc(o.title)} · ${esc(o.place)}</div>`).join('')}</div>`:''}
+<div class="box" style="margin-top:12px">📍 นัดรับที่จุดบริการนิสิตหรือห้องสมุด เพื่อความปลอดภัย</div>
+${it.status==='open'?`<button class="btn ok" onclick="done(${it.id},this)">${it.type==='lost'?'ได้ของคืนแล้ว':'ส่งคืนเจ้าของแล้ว'}</button>`:''}<button class="btn alt" onclick="del(${it.id},this)">ลบประกาศ</button><button class="btn alt" onclick="this.closest('.modal').remove()">ปิด</button></div>`;document.body.appendChild(el)}
+function done(id,b){S.items.find(i=>i.id===id).status='done';save();b.closest('.modal').remove();render();toast('ปิดประกาศแล้ว 🎉')}
+function del(id,b){if(!confirm('ลบประกาศนี้?'))return;S.items=S.items.filter(i=>i.id!==id);save();b.closest('.modal').remove();render()}
+function render(){nav();$('#app').innerHTML={home,post,spots}[tab]();window.scrollTo(0,0)}
+render();
+</script>
+</body>
+</html>
