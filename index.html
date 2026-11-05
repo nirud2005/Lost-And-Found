@@ -74,6 +74,7 @@ a.btn{text-decoration:none}
 <div id="app"><div id="v"></div><nav id="nv"></nav></div>
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&','<':'<','>':'>','"':'"'}[c]));
+const EM=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CATS=[['👜','กระเป๋า'],['📱','มือถือ'],['🔑','กุญแจ'],['🪪','บัตรนักศึกษา'],['📓','เอกสาร'],['👕','เครื่องแต่งกาย'],['✏️','อุปกรณ์การเรียน'],['⋯','อื่นๆ']];
 const MQ='มหาวิทยาลัยศรีนครินทรวิโรฒ ประสานมิตร',PL={'สำนักหอสมุดกลาง':'สำนักหอสมุดกลาง '+MQ,'อาคารเรียนรวม (Learning Tower)':'อาคารเรียนรวม หลวงสวัสดิศาสตรพุทธิ '+MQ,'โรงอาหาร':'โรงอาหาร '+MQ,'อาคารกิจกรรมนิสิต':'อาคารกิจกรรมนิสิต '+MQ,'ทางเข้า ซอยสุขุมวิท 23':'ซอยสุขุมวิท 23 '+MQ,'ทางเข้า ถนนอโศกมนตรี':'ถนนอโศกมนตรี '+MQ,'ทางเข้า ถนนเพชรบุรี':'ถนนเพชรบุรี '+MQ};
 const D=864e5,now=Date.now();
@@ -102,17 +103,16 @@ function login(reg){return`<main><div class="logo"><div class="lg">🎒</div><h1
 <button class="btn" onclick="doLogin(${reg?1:0})">${reg?'สมัครสมาชิก':'เข้าสู่ระบบ'}</button><button class="btn o" onclick="location.hash='${reg?'login':'register'}'">${reg?'มีบัญชีแล้ว เข้าสู่ระบบ':'สมัครสมาชิก'}</button></div>
 <p class="mu" style="text-align:center">หรือเข้าสู่ระบบด้วย</p><div class="up" style="margin-top:8px"><label onclick="doLogin(2)"><i><svg viewBox="0 0 48 48" width="26" height="26" aria-hidden="true" style="display:inline-block;vertical-align:middle"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></i>Google</label><label onclick="doLogin(2)"><i><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true" style="display:inline-block;vertical-align:middle"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg></i>Apple</label><label onclick="doLogin(2)"><i>🎓</i>มศว</label></div></main>`}
 
-/* auth: รหัสผ่านถูกแฮช SHA-256 + salt ก่อนเก็บ (เก็บในเบราว์เซอร์เท่านั้น) */
+/* auth */
 const U=()=>{try{return JSON.parse(localStorage.getItem('slf_users')||'{}')}catch(e){return{}}};
 const sU=u=>{try{localStorage.setItem('slf_users',JSON.stringify(u))}catch(e){toast('บันทึกบัญชีไม่ได้')}};
 async function hp(p,salt){const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+p));return[...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 const rs=()=>[...crypto.getRandomValues(new Uint8Array(12))].map(x=>x.toString(16).padStart(2,'0')).join('');
 const er=m=>{const e=$('#err');if(e)e.textContent=m};
-async function doLogin(m){
-if(m===2){toast('ล็อกอินด้วย Google / Apple / มศว ต้องมีเซิร์ฟเวอร์ ยังไม่เปิดใช้ในเวอร์ชันนี้');return}
-if(!(window.crypto&&crypto.subtle))return er('เบราว์เซอร์นี้ไม่รองรับการเข้ารหัส กรุณาเปิดผ่าน https');
+let doLogin=async function(m){
+if(m===2){toast('ล็อกอินด้วย Google / Apple / มศว ยังไม่เปิดใช้ในเวอร์ชันนี้');return}
 const em=$('#em').value.trim().toLowerCase(),pw=$('#pw').value,u=U();
-if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em))return er('รูปแบบอีเมลไม่ถูกต้อง');
+if(!EM.test(em))return er('รูปแบบอีเมลไม่ถูกต้อง');
 if(m===1){const nm=$('#nm').value.trim();
 if(nm.length<2)return er('กรอกชื่อ-นามสกุล');
 if(pw.length<8)return er('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
@@ -120,11 +120,13 @@ if(pw!==$('#pw2').value)return er('รหัสผ่านไม่ตรงก
 if(u[em])return er('อีเมลนี้สมัครแล้ว กรุณาเข้าสู่ระบบ');
 const salt=rs();u[em]={name:nm,salt,hash:await hp(pw,salt)};sU(u)}
 else{const a=u[em];if(!a||a.hash!==await hp(pw,a.salt))return er('อีเมลหรือรหัสผ่านไม่ถูกต้อง')}
-S.user={name:u[em].name,email:em};save();toast('ยินดีต้อนรับ '+u[em].name);location.hash='home'}
+S.user={name:u[em].name,email:em};save();toast('ยินดีต้อนรับ '+u[em].name);location.hash='home'};
+
 async function cpw(){const u=U(),a=u[S.user.email];if(!a){toast('บัญชีนี้ยังไม่มีรหัสผ่าน');return}const o=prompt('รหัสผ่านเดิม');if(o===null)return;if(a.hash!==await hp(o,a.salt)){toast('รหัสผ่านเดิมไม่ถูกต้อง');return}const n=prompt('รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)');if(!n||n.length<8){toast('รหัสผ่านใหม่สั้นเกินไป');return}a.salt=rs();a.hash=await hp(n,a.salt);sU(u);toast('เปลี่ยนรหัสผ่านแล้ว ✓')}
+
 /* 2 home */
 function home(){const l=listHome();return`${bar('Smart Lost & Found',0,'<button class="ib" onclick="location.hash=\'scan\'">📷</button><button class="ib" onclick="location.hash=\'notif\'">🔔'+(unread()?'<span class="dot"></span>':'')+'</button>')}<main>
-${ON?'':'<div class="card" style="background:#fff8e6;border-color:#f0d9a0"><b>โหมดทดลอง</b><div class="mu">ตอนนี้ประกาศเก็บในเครื่องนี้เท่านั้น เพื่อนจะยังไม่เห็น ต้องเปิดฐานข้อมูลก่อน (ดู README)</div></div>'}
+${ON?'':'<div class="card" style="background:#fff8e6;border-color:#f0d9a0"><b>โหมดทดลอง</b><div class="mu">ตอนนี้ประกาศเก็บในเครื่องนี้เท่านั้น เพื่อนจะยังไม่เห็น ต้องเปิดฐานข้อมูลก่อน</div></div>'}
 <input class="in" id="q" placeholder="🔎 ค้นหาของหาย / ของที่เก็บได้" value="${esc(q)}" oninput="q=this.value;$('#lst').innerHTML=listHome()">
 <div class="ban"><b>📢 ประชาสัมพันธ์</b>ประกาศ: พบกระเป๋าสตางค์ ที่สำนักหอสมุดกลาง ชั้น 1<br><small>${fd(now)}</small></div>
 <div class="grid">${CATS.map((c,i)=>`<button class="cat ${fc===i?'on':''}" onclick="fc=fc===${i}?-1:${i};render()"><span>${c[0]}</span>${c[1]}</button>`).join('')}</div>
@@ -143,7 +145,7 @@ function post(){return`${bar('ประกาศ / สร้างโพสต�
 <label class="l">ช่องทางติดต่อ (ถ้ามี)</label><input class="in" id="contact" placeholder="เบอร์โทร / Line / อื่นๆ" value="${esc(F.contact)}"><button class="btn" onclick="submitPost()">โพสต์ประกาศ</button></main>`}
 function sf(){['cat','title','desc','place','date','time','contact'].forEach(k=>{const e=$('#'+k);if(e)F[k]=e.value})}
 function pk(i){if(!i.files[0])return;sf();readImg(i.files[0],d=>{F.img=d;render()})}
-function submitPost(){sf();if(F.cat===''||!F.title||!F.desc||!F.place||!F.date){toast('กรอกข้อมูลที่มี * ให้ครบ');return}
+let submitPost=function(){sf();if(F.cat===''||!F.title||!F.desc||!F.place||!F.date){toast('กรอกข้อมูลที่มี * ให้ครบ');return}
 if(new Date(F.date+'T'+(F.time||'00:00'))>new Date()){toast('วันที่พบต้องไม่เป็นอนาคต');return}
 const t=new Date(F.date+'T'+(F.time||'12:00')).getTime();const it={id:S.next++,type:F.type,cat:+F.cat,title:F.title,desc:F.desc,place:F.place,d:t,contact:F.contact||'ติดต่อผ่านแชท',by:(S.user&&S.user.name)||'นักศึกษา ก.',st:'open',img:F.img,mine:1,owner:S.user.email};S.items.unshift(it);save();F={type:F.type,cat:'',title:'',desc:'',place:'',date:'',time:'',contact:'',img:''};toast('โพสต์เรียบร้อย ✓');location.hash='item-'+it.id}
 
@@ -160,8 +162,8 @@ ${sim.length?`<div class="hd">✨ รายการที่อาจตรง�
 ${own&&i.st==='open'?`<button class="btn g" onclick="dn(${i.id})">${i.type==='lost'?'ได้ของคืนแล้ว':'ส่งคืนเจ้าของแล้ว'}</button>`:''}
 ${own?`<button class="btn o" style="color:var(--rd);border-color:var(--rd)" onclick="rm(${i.id})">ลบประกาศ</button>`:''}</main>`}
 function tsv(id){S.saved=S.saved.includes(id)?S.saved.filter(x=>x!==id):[...S.saved,id];save();render()}
-function dn(id){get(id).st='done';save();toast('ปิดประกาศแล้ว 🎉');render()}
-function rm(id){if(!confirm('ลบประกาศนี้?'))return;S.items=S.items.filter(i=>i.id!==id);save();location.hash='home'}
+let dn=function(id){get(id).st='done';save();toast('ปิดประกาศแล้ว 🎉');render()}
+let rm=function(id){if(!confirm('ลบประกาศนี้?'))return;S.items=S.items.filter(i=>i.id!==id);save();location.hash='home'}
 
 /* 5 chat */
 function chat(id){const i=get(id);if(!i)return'';const m=S.chats[id]||(S.chats[id]=[{w:'o',t:'สวัสดีค่ะ ยังอยู่ไหมคะ เรื่อง'+i.title}]);
@@ -172,7 +174,7 @@ function send(id){const e=$('#cmsg'),t=e.value.trim();if(!t)return;S.chats[id].p
 
 /* 6 map */
 const CAMPUS=[13.7469129,100.5656555],gm=q=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);
-const PI={'สำนักหอสมุดกลาง':'เปิดจันทร์–ศุกร์ 08.00–20.00 น. (ภาคเรียนนี้ 3 ส.ค.–8 ธ.ค. 2569) โซน Learning Space ชั้น 1 และวันหยุดเวลาอาจต่างออกไป ดูประกาศของหอสมุดก่อนไป','อาคารเรียนรวม (Learning Tower)':'อาคารหมายเลข 31 ชื่อเต็ม อาคารเรียนรวม หลวงสวัสดิศาสตรพุทธิ มีสำนักนวัตกรรมการเรียนรู้อยู่ชั้น 6','ทางเข้า ซอยสุขุมวิท 23':'หนึ่งใน 3 เส้นทางเข้ามหาวิทยาลัย ที่อยู่ 114 ซอยสุขุมวิท 23 เขตวัฒนา','ทางเข้า ถนนอโศกมนตรี':'หนึ่งใน 3 เส้นทางเข้ามหาวิทยาลัย','ทางเข้า ถนนเพชรบุรี':'หนึ่งใน 3 เส้นทางเข้ามหาวิทยาลัย เดินจาก MRT เพชรบุรีได้'};
+const PI={'สำนักหอสมุดกลาง':'เปิดจันทร์–ศุกร์ 08.00–20.00 น. โซน Learning Space ชั้น 1','อาคารเรียนรวม (Learning Tower)':'อาคารหมายเลข 31 มีสำนักนวัตกรรมการเรียนรู้อยู่ชั้น 6','ทางเข้า ซอยสุขุมวิท 23':'หนึ่งใน 3 เส้นทางเข้ามหาวิทยาลัย','ทางเข้า ถนนอโศกมนตรี':'หนึ่งใน 3 เส้นทางเข้ามหาวิทยาลัย','ทางเข้า ถนนเพชรบุรี':'เดินจาก MRT เพชรบุรีได้'};
 function map(){const ks=Object.keys(PL),open=p=>S.items.filter(i=>i.place===p&&i.st==='open'),list=msel?open(msel):S.items.filter(i=>i.st==='open').sort((a,b)=>b.d-a.d).slice(0,5);
 return`${bar('แผนที่ มศว ประสานมิตร')}<main>
 <div id="lmap" class="mapf" style="height:340px" role="region" aria-label="แผนที่มหาวิทยาลัย"></div>
@@ -183,15 +185,13 @@ return`${bar('แผนที่ มศว ประสานมิตร')}<mai
 ${msel&&PI[msel]?`<div class="card" style="margin-top:12px"><b>📍 ${esc(msel)}</b><p class="mu" style="margin-top:4px">${PI[msel]}</p></div>`:''}
 <div class="hd">${msel?'รายการที่ '+esc(msel):'รายการล่าสุด'}</div>
 ${list.length?list.map(itemRow).join(''):`<div class="card" style="text-align:center"><p class="mu">ยังไม่มีรายการที่จุดนี้</p><button class="btn" onclick="location.hash='post'">ประกาศของหาย / ของที่เก็บได้</button></div>`}
-<div class="card"><b>🏫 ที่ตั้ง</b><p class="mu" style="margin-top:4px">114 ซอยสุขุมวิท 23 แขวงคลองเตยเหนือ เขตวัฒนา กรุงเทพฯ 10110<br>เข้าได้ 3 ทาง: ซอยสุขุมวิท 23, ถนนอโศกมนตรี, ถนนเพชรบุรี</p></div>
-<p class="mu" style="text-align:center">💡 นัดรับของในที่สาธารณะที่มีคนพลุกพล่าน และไม่โอนเงินก่อนได้รับของ</p></main>`}
+<div class="card"><b>🏫 ที่ตั้ง</b><p class="mu" style="margin-top:4px">114 ซอยสุขุมวิท 23 แขวงคลองเตยเหนือ เขตวัฒนา กรุงเทพฯ 10110</p></div></main>`}
 
 /* 7 calendar */
 function cal(){const y=cm.getFullYear(),mo=cm.getMonth(),first=new Date(y,mo,1).getDay(),dim=new Date(y,mo+1,0).getDate(),has=new Set(S.items.map(i=>dk(i.d)));let c=['อา','จ','อ','พ','พฤ','ศ','ส'].map(d=>`<div class="h">${d}</div>`).join('')+'<span></span>'.repeat(first);
 for(let d=1;d<=dim;d++){const k=y+'-'+(mo+1)+'-'+d;c+=`<button class="${has.has(k)?'has':''} ${k===cs?'sel':''} ${k===dk(now)?'td':''}" onclick="cs='${k}';render()">${d}</button>`}
 const dl=S.items.filter(i=>dk(i.d)===cs);return`${bar('ปฏิทินตามหาของ')}<main><div class="card"><div class="hd" style="margin-top:0"><button class="ib" onclick="cm=new Date(${y},${mo-1},1);render()">‹</button>${fd(cm,{month:'long',year:'numeric'})}<button class="ib" onclick="cm=new Date(${y},${mo+1},1);render()">›</button></div><div class="cal">${c}</div><p class="mu" style="margin-top:8px">🟠 มีรายการของหาย/ของที่เก็บได้</p></div>
 <div class="hd">รายการตามหาวันนี้ <a onclick="location.hash='event-${cs}'">ดูทั้งหมด</a></div>${dl.length?dl.map(itemRow).join(''):'<p class="mu">ไม่มีรายการในวันที่เลือก</p>'}</main>`}
-/* 8 day detail */
 function event(k){const [y,m,d]=k.split('-').map(Number),dl=S.items.filter(i=>dk(i.d)===k);return`${bar('กิจกรรมตามหาของ',1)}<main><div class="card"><b>📅 ${fd(new Date(y,m-1,d),{day:'numeric',month:'long',year:'numeric'})}</b><div class="mu" style="margin-top:4px">ของที่เกี่ยวข้อง (${dl.length} รายการ)</div></div>${dl.length?dl.map(itemRow).join(''):'<p class="mu">ยังไม่มีรายการในวันนี้</p>'}</main>`}
 
 /* 9 scan */
@@ -200,10 +200,10 @@ function scan(){return`<div class="scan"><div class="bar" style="background:none
 <div class="sc"><label><i>🖼️</i>แกลเลอรี<input type="file" accept="image/*" hidden onchange="sp(this)"></label><label class="shut" style="display:block"><input type="file" accept="image/*" capture="environment" hidden onchange="sp(this)"></label><button onclick="toast('ไฟแฟลชขึ้นอยู่กับอุปกรณ์')"><i>⚡</i>แฟลช</button></div>
 ${scanImg?'<div style="padding:0 20px"><button class="btn" onclick="scanRes()">ค้นหาของที่คล้ายกัน</button></div>':''}</div>`}
 function sp(i){if(i.files[0])readImg(i.files[0],d=>{scanImg=d;render()})}
-function scanRes(){const r=S.items.filter(i=>i.st==='open').slice(0,3);const e=document.createElement('div');e.className='sheet';e.onclick=x=>{if(x.target===e)e.remove()};e.innerHTML=`<div><div class="hd" style="margin-top:0">ผลการค้นหา (ตัวอย่างเดโม)</div><p class="mu" style="margin-bottom:10px">เวอร์ชันนี้ยังไม่ได้เชื่อม AI วิเคราะห์ภาพจริง จึงแสดงรายการล่าสุดเป็นตัวอย่าง</p>${r.map((i,n)=>itemRow(i).replace('</h3>',`</h3><span class="mu">ความคล้าย ${90-n*12}%</span>`)).join('')}</div>`;document.body.appendChild(e)}
+function scanRes(){const r=S.items.filter(i=>i.st==='open').slice(0,3);const e=document.createElement('div');e.className='sheet';e.onclick=x=>{if(x.target===e)e.remove()};e.innerHTML=`<div><div class="hd" style="margin-top:0">ผลการค้นหา (ตัวอย่างเดโม)</div><p class="mu" style="margin-bottom:10px">เวอร์ชันนี้ยังไม่ได้เชื่อม AI วิเคราะห์ภาพจริง แสดงรายการล่าสุดเป็นตัวอย่าง</p>${r.map((i,n)=>itemRow(i).replace('</h3>',`</h3><span class="mu">ความคล้าย ${90-n*12}%</span>`)).join('')}</div>`;document.body.appendChild(e)}
 
 /* 10 profile */
-function me(){const u=S.user||{name:'นักศึกษา ก.',email:'student@g.swu.ac.th'},mine=S.items.filter(i=>i.mine);return`${bar('โปรไฟล์ / ประวัติประกาศ',0,'<button class="ib" onclick="location.hash=\'prefs\'">⚙️</button>')}<main><div class="card" style="text-align:center">${avh()}<b>${esc(u.name)}</b><div class="mu">นักศึกษา มศว · ${esc(u.email)}</div></div>
+function me(){const u=S.user||{name:'นักศึกษา ก.',email:'student@g.swu.ac.th'};return`${bar('โปรไฟล์ / ประวัติประกาศ',0,'<button class="ib" onclick="location.hash=\'prefs\'">⚙️</button>')}<main><div class="card" style="text-align:center">${avh()}<b>${esc(u.name)}</b><div class="mu">นักศึกษา มศว · ${esc(u.email)}</div></div>
 <div class="card stat"><div><b>${S.items.filter(i=>i.type==='lost').length}</b><span class="mu">ประกาศของหาย</span></div><div><b>${S.items.filter(i=>i.type==='found').length}</b><span class="mu">ของที่เก็บได้</span></div><div><b>${S.items.filter(i=>i.st==='done').length}</b><span class="mu">ได้คืนแล้ว</span></div></div>
 <div class="card"><div class="mn" onclick="location.hash='hist'"><i>📄</i><span>ประวัติประกาศ</span>›</div><div class="mn" onclick="location.hash='saved'"><i>💙</i><span>รายการที่บันทึกไว้ (${S.saved.length})</span>›</div><div class="mn" onclick="location.hash='prefs'"><i>⚙️</i><span>ตั้งค่า</span>›</div><div class="mn" onclick="location.hash='verify'"><i>✅</i><span>ยืนยันตัวตน</span><span class="tag ${S.verified.id?'t-found':'t-done'}">${S.verified.id?'ยืนยันแล้ว':S.verified.status==='pending'?'รอตรวจสอบ':'ยังไม่ยืนยัน'}</span></div></div></main>`}
 const hist=()=>bar('ประวัติประกาศ',1)+'<main>'+(S.items.filter(i=>i.owner===S.user.email).map(itemRow).join('')||'<p class="mu" style="text-align:center;padding:30px">ยังไม่มีประกาศของคุณ กดปุ่ม + เพื่อสร้างประกาศแรก</p>')+'</main>';
@@ -213,17 +213,17 @@ const saved=()=>bar('รายการที่บันทึกไว้',1)+
 const FAC=['คณะมนุษยศาสตร์','คณะสังคมศาสตร์','คณะวิทยาศาสตร์','คณะศึกษาศาสตร์','คณะวิศวกรรมศาสตร์','คณะพยาบาลศาสตร์','คณะพลศึกษา','คณะศิลปกรรมศาสตร์','คณะอื่นๆ'],mk=s=>s?s.slice(0,2)+'•'.repeat(Math.max(0,s.length-4))+s.slice(-2):'-';
 function verify(){const v=S.verified,u=S.user||{},hd=bar('ยืนยันตัวตน',1),ic=(e,t,p)=>`<div style="text-align:center;font-size:60px">${e}</div><h2 style="text-align:center;font-size:18px">${t}</h2><p class="mu" style="text-align:center;margin:6px 0 14px">${p}</p>`;
 if(v.status==='ok'||v.id)return`${hd}<main>${ic('✅','ยืนยันตัวตนแล้ว','ป้ายยืนยันตัวตนจะแสดงในโปรไฟล์ของคุณ')}<div class="card"><div class="row"><b>ชื่อ</b>${esc(u.name)}</div><div class="row"><b>รหัสนิสิต</b>${mk(v.sid)}</div><div class="row"><b>คณะ</b>${esc(v.fac)}</div><div class="row"><b>อีเมล</b>${esc(v.mail)}</div></div><button class="btn o" onclick="vR()">ยื่นยืนยันตัวตนใหม่</button></main>`;
-if(v.status==='pending')return`${hd}<main>${ic('⏳','รอเจ้าหน้าที่ตรวจสอบ','ส่งคำขอเมื่อ '+fd(v.sentAt)+' '+ft(v.sentAt)+' น. โดยปกติใช้เวลา 1–2 วันทำการ')}<div class="card"><div class="row"><b>✓ อีเมล</b>${esc(v.mail)}</div><div class="row"><b>✓ รูปบัตร</b>ส่งแล้ว</div><div class="row"><b>⏳ ตรวจสอบ</b>กำลังดำเนินการ</div></div><p class="mu" style="text-align:center">เวอร์ชันเดโมไม่มีเจ้าหน้าที่จริง กดปุ่มด้านล่างเพื่อจำลองผลอนุมัติ</p><button class="btn g" onclick="vA()">จำลองผลอนุมัติ (เดโม)</button><button class="btn o" onclick="vR()">ยกเลิกคำขอ</button></main>`;
+if(v.status==='pending')return`${hd}<main>${ic('⏳','รอเจ้าหน้าที่ตรวจสอบ','ส่งคำขอเมื่อ '+fd(v.sentAt)+' '+ft(v.sentAt)+' น.')}<div class="card"><div class="row"><b>✓ อีเมล</b>${esc(v.mail)}</div><div class="row"><b>✓ รูปบัตร</b>ส่งแล้ว</div></div><button class="btn g" onclick="vA()">จำลองผลอนุมัติ (เดโม)</button><button class="btn o" onclick="vR()">ยกเลิกคำขอ</button></main>`;
 const n=v.step||1,sp=[1,2,3].map(i=>`<span class="tag ${i<=n?'t-found':'t-done'}">${i}. ${['ข้อมูลนิสิต','บัตรนักศึกษา','อีเมล'][i-1]}</span>`).join(' ');
 const b=n===1?`<label class="l" for="sid">รหัสนิสิต</label><input class="in" id="sid" inputmode="numeric" maxlength="11" value="${esc(v.sid)}" placeholder="ตัวเลข 10–11 หลัก"><label class="l" for="fac">คณะ</label><select id="fac"><option value="">เลือกคณะ</option>${FAC.map(f=>`<option ${v.fac===f?'selected':''}>${f}</option>`).join('')}</select><button class="btn" onclick="vNext(1)">ถัดไป</button>`
-:n===2?`<p class="mu">ถ่ายรูปบัตรนักศึกษาด้านหน้าให้เห็นชื่อและรูปชัดเจน ปิดเลขบัตรประชาชน (ถ้ามี) ก่อนถ่าย</p><div class="up" style="margin-top:10px"><label><i>📷</i>ถ่ายรูปบัตร<input type="file" accept="image/*" capture="environment" hidden onchange="vPic(this)"></label><label><i>⬆️</i>อัปโหลด<input type="file" accept="image/*" hidden onchange="vPic(this)"></label></div>${v.img?`<img src="${v.img}" alt="รูปบัตรนักศึกษา" style="width:100%;max-height:200px;object-fit:cover;border-radius:14px;margin-top:10px">`:''}<div class="up"><button class="btn o" onclick="vBack()">ย้อนกลับ</button><button class="btn" onclick="vNext(2)">ถัดไป</button></div><p class="mu" style="margin-top:10px">เวอร์ชันเดโมเก็บรูปไว้ในเบราว์เซอร์ของคุณเท่านั้น</p>`
-:`<label class="l" for="vm">อีเมลมหาวิทยาลัย</label><input class="in" id="vm" type="email" value="${esc(v.mail||'')}" placeholder="name@g.swu.ac.th"><button class="btn o" onclick="vSend()">${v.otp?'ส่งรหัสอีกครั้ง':'ส่งรหัสยืนยัน'}</button>${v.otp?`<div class="card" style="background:var(--bl);margin-top:12px"><b>รหัสทดลอง: ${v.otp}</b><div class="mu">เดโมไม่ส่งอีเมลจริง ระบบจริงจะส่งรหัส 6 หลักไปที่อีเมลนี้ (หมดอายุใน 5 นาที)</div></div><label class="l" for="vcode">กรอกรหัส 6 หลัก</label><input class="in" id="vcode" inputmode="numeric" maxlength="6" autocomplete="one-time-code"><button class="btn" onclick="vOk()">ยืนยันและส่งคำขอ</button>`:''}<button class="btn o" onclick="vBack()">ย้อนกลับ</button>`;
-return`${hd}<main>${ic('🛡️','ยืนยันตัวตนนิสิต','ช่วยให้ผู้อื่นมั่นใจเมื่อนัดรับของ ทำครบ 3 ขั้นตอน')}<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px">${sp}</div><div class="card">${b}</div></main>`}
+:n===2?`<p class="mu">ถ่ายรูปบัตรนักศึกษาด้านหน้าให้เห็นชื่อและรูปชัดเจน</p><div class="up" style="margin-top:10px"><label><i>📷</i>ถ่ายรูปบัตร<input type="file" accept="image/*" capture="environment" hidden onchange="vPic(this)"></label><label><i>⬆️</i>อัปโหลด<input type="file" accept="image/*" hidden onchange="vPic(this)"></label></div>${v.img?`<img src="${v.img}" alt="" style="width:100%;max-height:200px;object-fit:cover;border-radius:14px;margin-top:10px">`:''}<div class="up"><button class="btn o" onclick="vBack()">ย้อนกลับ</button><button class="btn" onclick="vNext(2)">ถัดไป</button></div>`
+:`<label class="l" for="vm">อีเมลมหาวิทยาลัย</label><input class="in" id="vm" type="email" value="${esc(v.mail||'')}" placeholder="name@g.swu.ac.th"><button class="btn o" onclick="vSend()">${v.otp?'ส่งรหัสอีกครั้ง':'ส่งรหัสยืนยัน'}</button>${v.otp?`<div class="card" style="background:var(--bl);margin-top:12px"><b>รหัสทดลอง: ${v.otp}</b></div><label class="l" for="vcode">กรอกรหัส 6 หลัก</label><input class="in" id="vcode" inputmode="numeric" maxlength="6"><button class="btn" onclick="vOk()">ยืนยันและส่งคำขอ</button>`:''}<button class="btn o" onclick="vBack()">ย้อนกลับ</button>`;
+return`${hd}<main>${ic('🛡️','ยืนยันตัวตนนิสิต','ทำครบ 3 ขั้นตอน')}<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px">${sp}</div><div class="card">${b}</div></main>`}
 function vNext(n){const v=S.verified;if(n===1){const s=$('#sid').value.trim(),f=$('#fac').value;if(!/^\d{10,11}$/.test(s))return toast('รหัสนิสิตต้องเป็นตัวเลข 10–11 หลัก');if(!f)return toast('เลือกคณะ');v.sid=s;v.fac=f;v.step=2}else{if(!v.img)return toast('แนบรูปบัตรนักศึกษาก่อน');v.step=3}save();render()}
 const vBack=()=>{S.verified.step=(S.verified.step||1)-1;save();render()};
 function vPic(i){const f=i.files[0];if(f&&/^image\//.test(f.type))readImg(f,d=>{S.verified.img=d;save();render()});else toast('เลือกไฟล์รูปภาพเท่านั้น')}
-function vSend(){const m=$('#vm').value.trim().toLowerCase();if(!/^[^\s@]+@(g\.)?swu\.ac\.th$/.test(m))return toast('ใช้อีเมลมหาวิทยาลัย (@g.swu.ac.th)');const v=S.verified;v.mail=m;v.otp=String(100000+crypto.getRandomValues(new Uint32Array(1))[0]%900000);v.otpT=Date.now()+3e5;v.tries=0;save();render()}
-function vOk(){const v=S.verified,c=$('#vcode').value.trim();if(Date.now()>v.otpT)return toast('รหัสหมดอายุ กดส่งรหัสอีกครั้ง');if(c!==v.otp){if(++v.tries>=5){v.otp='';save();render();return toast('ผิดหลายครั้ง กรุณาขอรหัสใหม่')}save();return toast('รหัสไม่ถูกต้อง')}v.otp='';v.status='pending';v.sentAt=Date.now();save();render();toast('ส่งคำขอแล้ว')}
+function vSend(){const m=$('#vm').value.trim().toLowerCase();if(!EM.test(m))return toast('กรอกอีเมลให้ถูกต้อง');const v=S.verified;v.mail=m;v.otp=String(100000+crypto.getRandomValues(new Uint32Array(1))[0]%900000);v.otpT=Date.now()+3e5;v.tries=0;save();render()}
+function vOk(){const v=S.verified,c=$('#vcode').value.trim();if(Date.now()>v.otpT)return toast('รหัสหมดอายุ');if(c!==v.otp){if(++v.tries>=5){v.otp='';save();render();return toast('ผิดหลายครั้ง กรุณาขอรหัสใหม่')}save();return toast('รหัสไม่ถูกต้อง')}v.otp='';v.status='pending';v.sentAt=Date.now();save();render();toast('ส่งคำขอแล้ว')}
 function vA(){const v=S.verified;v.status='ok';v.id=true;save();render();toast('ยืนยันตัวตนสำเร็จ ✓')}
 function vR(){if(!confirm('เริ่มกรอกใหม่?'))return;S.verified={};save();render()}
 
@@ -243,7 +243,7 @@ return`${bar('แจ้งเตือน',1,'<button class="ib" title="อ่�
 
 /* 13 prefs */
 function prefs(){const u=S.user||{name:'นักศึกษา ก.'};return`${bar('ตั้งค่าโปรไฟล์',1)}<main><div class="card" style="text-align:center">${avh()}<b>${esc(u.name)}</b><div class="mu">นักศึกษา มศว</div></div>
-<div class="card"><div class="mn" onclick="ed()"><i>👤</i><span>ข้อมูลส่วนตัว</span>›</div><div class="mn" onclick="location.hash='verify'"><i>✅</i><span>การยืนยันตัวตน</span>›</div><div class="mn" onclick="cpw()"><i>🔒</i><span>เปลี่ยนรหัสผ่าน</span>›</div><div class="mn" onclick="location.hash='hist'"><i>📄</i><span>ประวัติประกาศ</span>›</div><div class="mn" onclick="location.hash='notif'"><i>🔔</i><span>การแจ้งเตือน</span>›</div><div class="mn" onclick="toast('ติดต่อ: lostfound@swu.ac.th (ตัวอย่าง)')"><i>🎧</i><span>ติดต่อผู้ดูแล / แจ้งปัญหา</span>›</div><div class="mn" onclick="if(confirm('ล้างข้อมูลตัวอย่างทั้งหมด?')){localStorage.removeItem('slf');S=seed();location.hash='login';render()}"><i>🗑️</i><span>รีเซ็ตข้อมูลเดโม</span>›</div><div class="mn" onclick="if(confirm('ออกจากระบบ?')){S.user=null;save();location.hash='login'}"><i>↩️</i><span>ออกจากระบบ</span>›</div></div></main>`}
+<div class="card"><div class="mn" onclick="ed()"><i>👤</i><span>ข้อมูลส่วนตัว</span>›</div><div class="mn" onclick="location.hash='verify'"><i>✅</i><span>การยืนยันตัวตน</span>›</div><div class="mn" onclick="cpw()"><i>🔒</i><span>เปลี่ยนรหัสผ่าน</span>›</div><div class="mn" onclick="location.hash='hist'"><i>📄</i><span>ประวัติประกาศ</span>›</div><div class="mn" onclick="location.hash='notif'"><i>🔔</i><span>การแจ้งเตือน</span>›</div><div class="mn" onclick="if(confirm('ล้างข้อมูลตัวอย่างทั้งหมด?')){localStorage.removeItem('slf');S=seed();location.hash='login';render()}"><i>🗑️</i><span>รีเซ็ตข้อมูลเดโม</span>›</div><div class="mn" onclick="if(confirm('ออกจากระบบ?')){S.user=null;save();location.hash='login'}"><i>↩️</i><span>ออกจากระบบ</span>›</div></div></main>`}
 function ed(){const n=prompt('ชื่อที่แสดง',(S.user&&S.user.name)||'');if(n&&n.trim()){S.user.name=n.trim();const u=U();if(u[S.user.email]){u[S.user.email].name=S.user.name;sU(u)}save();render();toast('บันทึกชื่อแล้ว ✓')}}
 
 /* router */
@@ -260,16 +260,18 @@ const TT={login:'เข้าสู่ระบบ',register:'สมัครส
 const R0=render;render=function(){R0();{const r0=location.hash.slice(1);if(r0==='map')initMap();if(r0==='post')initPick()}document.querySelectorAll('#v [onclick]').forEach(e=>{if(!/^(BUTTON|A|INPUT|SELECT)$/.test(e.tagName)){e.setAttribute('role','button');e.tabIndex=0}});document.title=(TT[(location.hash.slice(1)||'login').split('-')[0]]||'')+' – Smart Lost & Found'};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){const s=document.querySelector('.sheet');if(s)s.remove()}if(e.key==='Enter'&&e.target.matches('.card .in')&&['login','register'].includes(location.hash.slice(1)||'login')){const b=document.querySelector('.card .btn');if(b)b.click()}});
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[role=button]')){e.preventDefault();e.target.click()}});
-/* ===== avatar, real map, shared database (เชื่อมต่อ Supabase แล้ว) ===== */
+
+/* ===== avatar, real map, shared database ===== */
 const SB_URL='https://qnhbiwpzzzakdikonuxt.supabase.co',SB_KEY='sb_publishable_ypj2F_e4KYDMLW01uVwe-w_AbB09ONK';
-const ON=!!(SB_URL&&SB_KEY),TILE='https://tile.openstreetmap.org/{z}/{x}/{y}.png',VB='100.558,13.7515,100.5715,13.7405';
+const ON=!!(SB_URL&&SB_KEY&&!SB_KEY.startsWith('sb_publishable_'));
+const TILE='https://tile.openstreetmap.org/{z}/{x}/{y}.png',VB='100.558,13.7515,100.5715,13.7405';
 let SES=null,PICK=null,LM=null,GEO={};try{SES=JSON.parse(localStorage.getItem('slf_s')||'null')}catch(e){}try{GEO=JSON.parse(localStorage.getItem('slf_geo')||'{}')}catch(e){}
 const avh=()=>{const a=S.user&&(S.user.avatar||(U()[S.user.email]||{}).avatar);return`<label class="av" style="position:relative;cursor:pointer" title="เปลี่ยนรูปโปรไฟล์">${a?`<img src="${a}" alt="รูปโปรไฟล์">`:'👩‍🎓'}<span class="avb">📷</span><input type="file" accept="image/*" hidden onchange="setAv(this)"></label>`};
 function setAv(i){const f=i.files[0];if(!f)return;if(!/^image\//.test(f.type))return toast('เลือกไฟล์รูปภาพเท่านั้น');readImg(f,d=>{S.user.avatar=d;const u=U();if(u[S.user.email]){u[S.user.email].avatar=d;sU(u)}save();render();toast('เปลี่ยนรูปโปรไฟล์แล้ว ✓')})}
 const ic=e=>L.divIcon({html:'<div style="font-size:26px;line-height:1;filter:drop-shadow(0 2px 2px #0005)">'+e+'</div>',iconSize:[26,26],iconAnchor:[13,26],className:''});
 let lastGeo=0;async function geo(p){if(GEO[p])return GEO[p];const w=1100-(Date.now()-lastGeo);if(w>0)await new Promise(r=>setTimeout(r,w));lastGeo=Date.now();try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&bounded=1&viewbox='+VB+'&accept-language=th&q='+encodeURIComponent(PL[p].replace(MQ,'').trim()));const j=await r.json();if(j[0]){GEO[p]=[+j[0].lat,+j[0].lon];try{localStorage.setItem('slf_geo',JSON.stringify(GEO))}catch(e){}return GEO[p]}}catch(e){}return null}
 const gate=p=>p.startsWith('ทางเข้า');
-async function initMap(){const el=$('#lmap');if(!el)return;if(!window.L){el.innerHTML='<p class="mu" style="padding:24px;text-align:center">โหลดแผนที่ไม่ได้ ตรวจสอบอินเทอร์เน็ต หรือกดปุ่มเปิดใน Google Maps</p>';return}
+async function initMap(){const el=$('#lmap');if(!el)return;if(!window.L){el.innerHTML='<p class="mu" style="padding:24px;text-align:center">โหลดแผนที่ไม่ได้ ตรวจสอบอินเทอร์เน็ต</p>';return}
 const M=LM=L.map(el).setView(CAMPUS,17);L.tileLayer(TILE,{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(M);
 S.items.filter(i=>i.lat&&i.st==='open').forEach(i=>L.marker([i.lat,i.lng],{icon:ic(i.type==='lost'?'🔴':'🟢')}).addTo(M).bindPopup(`<b>${esc(i.title)}</b><br>${esc(i.place)}<br><a href="#item-${i.id}">ดูรายละเอียด</a>`));
 if(msel&&!gate(msel)){const c=await geo(msel);if(c&&LM===M)M.setView(c,19)}
@@ -284,6 +286,7 @@ function initPick(){const el=$('#pmap');if(!el)return;if(!window.L){el.innerHTML
 PMK=null;const M=PM=L.map(el).setView(PICK||CAMPUS,PICK?19:17);L.tileLayer(TILE,{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(M);if(PICK)PMK=L.marker(PICK,{icon:ic('📍')}).addTo(M);
 M.on('click',async e=>{const c=[+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)];setPick(c);setPick(c,await nameAt(c))});
 (async()=>{for(const p of Object.keys(PL).filter(x=>!gate(x)))await geo(p)})()}
+
 const _sp=submitPost;submitPost=function(){const n=S.items.length,pk=PICK;_sp();if(S.items.length<=n)return;const it=S.items[0];if(pk){it.lat=pk[0];it.lng=pk[1]}PICK=null;save();if(!ON)return;
 rq('POST','/rest/v1/items',{type:it.type,cat:it.cat,title:it.title,descr:it.desc,place:it.place,lat:it.lat||null,lng:it.lng||null,d:it.d,contact:it.contact,by_name:it.by,st:'open',img:it.img||null},'return=representation').then(r=>{const o=it.id;it.id=r[0].id;save();pull.k='';if(location.hash==='#item-'+o)location.hash='item-'+it.id}).catch(e=>{S.items=S.items.filter(x=>x!==it);save();toast('โพสต์ไม่สำเร็จ: '+e.message);location.hash='post'})};
 const _dn=dn;dn=function(id){_dn(id);if(ON)rq('PATCH','/rest/v1/items?id=eq.'+id,{st:'done'}).catch(e=>toast('อัปเดตไม่สำเร็จ: '+e.message))};
@@ -298,6 +301,7 @@ const _dl=doLogin;doLogin=async function(m){if(m===2)return _dl(m);const em=$('#
 try{let r;if(m===1){const nm=$('#nm').value.trim();if(nm.length<2)return er('กรอกชื่อ-นามสกุล');if(pw!==$('#pw2').value)return er('รหัสผ่านทั้งสองช่องไม่ตรงกัน');r=await rq('POST','/auth/v1/signup',{email:em,password:pw,data:{name:nm}});if(!r.access_token)return er('สมัครแล้ว กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ')}else r=await rq('POST','/auth/v1/token?grant_type=password',{email:em,password:pw});
 SES=r;localStorage.setItem('slf_s',JSON.stringify(r));S.user={name:(r.user.user_metadata&&r.user.user_metadata.name)||em.split('@')[0],email:em};save();pull.k='';await pull();location.hash='home'}catch(e){er(/invalid login/i.test(e.message)?'อีเมลหรือรหัสผ่านไม่ถูกต้อง':e.message)}};
 pull();setInterval(pull,15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()})}
+
 window.addEventListener('hashchange',render);render();
 </script>
 </body>
