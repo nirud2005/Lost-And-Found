@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Smart Lost & Found – ของหายได้คืน</title>
+<meta name="description" content="เว็บแจ้งของหาย/ของที่เก็บได้ สำหรับนักศึกษา มศว">
+<meta name="theme-color" content="#2f6fe4">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>🎒</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--b:#2f6fe4;--b2:#1d4fb8;--bl:#e8f1ff;--bl2:#d3e5ff;--bg:#eef5ff;--tx:#17325c;--mu:#6a82a8;--ln:#d6e4fa;--w:#fff;--rd:#e5484d;--gr:#1fa971;--am:#f0a020;color-scheme:light}
@@ -45,11 +48,13 @@ nav .fab{flex:none;width:54px;height:54px;border-radius:50%;background:var(--b);
 .av{width:64px;height:64px;border-radius:50%;background:var(--bl2);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 6px}
 .vr{display:flex;gap:12px;align-items:center;cursor:pointer}.vr i{font-style:normal;font-size:24px}.ck{margin-left:auto;font-size:13px;color:var(--gr)}
 .toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--tx);color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;z-index:50}
+:focus-visible{outline:3px solid #7fb0ff;outline-offset:2px}
 .logo{text-align:center;padding:36px 0 10px}.logo .lg{font-size:70px}.logo h1{font-size:30px;line-height:1.1;color:var(--b)}.logo p{color:var(--mu);margin-top:4px}
 .sheet{position:fixed;inset:0;background:#0006;z-index:40;display:flex;align-items:flex-end;justify-content:center}.sheet>div{background:var(--bg);width:100%;max-width:480px;max-height:80vh;overflow:auto;border-radius:22px 22px 0 0;padding:16px}
 </style>
 </head>
 <body>
+<noscript><p style="padding:24px;text-align:center">กรุณาเปิดใช้งาน JavaScript เพื่อใช้งานเว็บไซต์</p></noscript>
 <div id="app"><div id="v"></div><nav id="nv"></nav></div>
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -76,11 +81,30 @@ let F={type:'lost',cat:'',title:'',desc:'',place:'',date:'',time:'',contact:'',i
 
 /* 1 login */
 function login(reg){return`<main><div class="logo"><div class="lg">🎒</div><h1>Smart<br>Lost & Found</h1><p>“ของหายได้คืน”</p></div>
-<div class="card">${reg?'<label class="l">ชื่อ-นามสกุล</label><input class="in" id="nm" placeholder="เช่น นักศึกษา ก.">':''}<label class="l">อีเมลมหาวิทยาลัย</label><input class="in" id="em" placeholder="name@g.swu.ac.th"><label class="l">รหัสผ่าน</label><input class="in" id="pw" type="password">
+<div class="card">${reg?'<label class="l">ชื่อ-นามสกุล</label><input class="in" id="nm" autocomplete="name" placeholder="เช่น นักศึกษา ก.">':''}<label class="l">อีเมลมหาวิทยาลัย</label><input class="in" id="em" type="email" autocomplete="username" placeholder="name@g.swu.ac.th"><label class="l">รหัสผ่าน</label><input class="in" id="pw" type="password" autocomplete="${reg?'new-password':'current-password'}">${reg?'<label class="l">ยืนยันรหัสผ่าน</label><input class="in" id="pw2" type="password" autocomplete="new-password">':''}<label class="mu" style="display:flex;gap:6px;margin-top:8px;cursor:pointer"><input type="checkbox" onchange="document.querySelectorAll('#pw,#pw2').forEach(e=>e.type=this.checked?'text':'password')"> แสดงรหัสผ่าน</label><div id="err" role="alert" style="color:var(--rd);font-size:13px;margin-top:8px"></div>
 <button class="btn" onclick="doLogin(${reg?1:0})">${reg?'สมัครสมาชิก':'เข้าสู่ระบบ'}</button><button class="btn o" onclick="location.hash='${reg?'login':'register'}'">${reg?'มีบัญชีแล้ว เข้าสู่ระบบ':'สมัครสมาชิก'}</button></div>
 <p class="mu" style="text-align:center">หรือเข้าสู่ระบบด้วย</p><div class="up" style="margin-top:8px"><label onclick="doLogin(2)"><i><svg viewBox="0 0 48 48" width="26" height="26" aria-hidden="true" style="display:inline-block;vertical-align:middle"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></i>Google</label><label onclick="doLogin(2)"><i><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true" style="display:inline-block;vertical-align:middle"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg></i>Apple</label><label onclick="doLogin(2)"><i>🎓</i>มศว</label></div></main>`}
-function doLogin(m){const em=$('#em')?$('#em').value.trim():'';if(m<2&&!em){toast('กรอกอีเมลมหาวิทยาลัย');return}S.user={name:($('#nm')&&$('#nm').value)||'นักศึกษา ก.',email:em||'student@g.swu.ac.th'};save();location.hash='home'}
 
+/* auth: รหัสผ่านถูกแฮช SHA-256 + salt ก่อนเก็บ (เก็บในเบราว์เซอร์เท่านั้น) */
+const U=()=>{try{return JSON.parse(localStorage.getItem('slf_users')||'{}')}catch(e){return{}}};
+const sU=u=>{try{localStorage.setItem('slf_users',JSON.stringify(u))}catch(e){toast('บันทึกบัญชีไม่ได้')}};
+async function hp(p,salt){const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+p));return[...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+const rs=()=>[...crypto.getRandomValues(new Uint8Array(12))].map(x=>x.toString(16).padStart(2,'0')).join('');
+const er=m=>{const e=$('#err');if(e)e.textContent=m};
+async function doLogin(m){
+if(m===2){toast('ล็อกอินด้วย Google / Apple / มศว ต้องมีเซิร์ฟเวอร์ ยังไม่เปิดใช้ในเวอร์ชันนี้');return}
+if(!(window.crypto&&crypto.subtle))return er('เบราว์เซอร์นี้ไม่รองรับการเข้ารหัส กรุณาเปิดผ่าน https');
+const em=$('#em').value.trim().toLowerCase(),pw=$('#pw').value,u=U();
+if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em))return er('รูปแบบอีเมลไม่ถูกต้อง');
+if(m===1){const nm=$('#nm').value.trim();
+if(nm.length<2)return er('กรอกชื่อ-นามสกุล');
+if(pw.length<8)return er('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
+if(pw!==$('#pw2').value)return er('รหัสผ่านไม่ตรงกัน');
+if(u[em])return er('อีเมลนี้สมัครแล้ว กรุณาเข้าสู่ระบบ');
+const salt=rs();u[em]={name:nm,salt,hash:await hp(pw,salt)};sU(u)}
+else{const a=u[em];if(!a||a.hash!==await hp(pw,a.salt))return er('อีเมลหรือรหัสผ่านไม่ถูกต้อง')}
+S.user={name:u[em].name,email:em};save();toast('ยินดีต้อนรับ '+u[em].name);location.hash='home'}
+async function cpw(){const u=U(),a=u[S.user.email];if(!a){toast('บัญชีนี้ยังไม่มีรหัสผ่าน');return}const o=prompt('รหัสผ่านเดิม');if(o===null)return;if(a.hash!==await hp(o,a.salt)){toast('รหัสผ่านเดิมไม่ถูกต้อง');return}const n=prompt('รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)');if(!n||n.length<8){toast('รหัสผ่านใหม่สั้นเกินไป');return}a.salt=rs();a.hash=await hp(n,a.salt);sU(u);toast('เปลี่ยนรหัสผ่านแล้ว ✓')}
 /* 2 home */
 function home(){const l=listHome();return`${bar('Smart Lost & Found',0,'<button class="ib" onclick="location.hash=\'scan\'">📷</button><button class="ib" onclick="location.hash=\'notif\'">🔔<span class="dot"></span></button>')}<main>
 <input class="in" id="q" placeholder="🔎 ค้นหาของหาย / ของที่เก็บได้" value="${esc(q)}" oninput="q=this.value;$('#lst').innerHTML=listHome()">
@@ -101,10 +125,11 @@ function post(){return`${bar('ประกาศ / สร้างโพสต�
 function sf(){['cat','title','desc','place','date','time','contact'].forEach(k=>{const e=$('#'+k);if(e)F[k]=e.value})}
 function pk(i){if(!i.files[0])return;sf();readImg(i.files[0],d=>{F.img=d;render()})}
 function submitPost(){sf();if(F.cat===''||!F.title||!F.desc||!F.place||!F.date){toast('กรอกข้อมูลที่มี * ให้ครบ');return}
-const t=new Date(F.date+'T'+(F.time||'12:00')).getTime();const it={id:S.next++,type:F.type,cat:+F.cat,title:F.title,desc:F.desc,place:F.place,d:t,contact:F.contact||'ติดต่อผ่านแชท',by:(S.user&&S.user.name)||'นักศึกษา ก.',st:'open',img:F.img,mine:1};S.items.unshift(it);save();F={type:F.type,cat:'',title:'',desc:'',place:'',date:'',time:'',contact:'',img:''};toast('โพสต์เรียบร้อย ✓');location.hash='item-'+it.id}
+if(new Date(F.date+'T'+(F.time||'00:00'))>new Date()){toast('วันที่พบต้องไม่เป็นอนาคต');return}
+const t=new Date(F.date+'T'+(F.time||'12:00')).getTime();const it={id:S.next++,type:F.type,cat:+F.cat,title:F.title,desc:F.desc,place:F.place,d:t,contact:F.contact||'ติดต่อผ่านแชท',by:(S.user&&S.user.name)||'นักศึกษา ก.',st:'open',img:F.img,mine:1,owner:S.user.email};S.items.unshift(it);save();F={type:F.type,cat:'',title:'',desc:'',place:'',date:'',time:'',contact:'',img:''};toast('โพสต์เรียบร้อย ✓');location.hash='item-'+it.id}
 
 /* 4 item */
-function item(id){const i=get(id);if(!i)return bar('ไม่พบรายการ',1)+'<main class="mu">รายการนี้ถูกลบแล้ว</main>';const sv=S.saved.includes(i.id);
+function item(id){const i=get(id);if(!i)return bar('ไม่พบรายการ',1)+'<main class="mu">รายการนี้ถูกลบแล้ว</main>';const sv=S.saved.includes(i.id),own=i.owner===(S.user&&S.user.email);
 const sim=S.items.filter(o=>o.id!==i.id&&o.type!==i.type&&o.st==='open'&&(o.cat===i.cat||o.place===i.place)).slice(0,2);
 return`<div class="hero" ${i.img?`style="background-image:url(${i.img})"`:''}>${i.img?'':CATS[i.cat][0]}<button class="ib" style="position:absolute;top:14px;left:14px" onclick="history.back()">‹</button></div><main>
 <h2 style="font-size:20px;font-weight:600">${esc(i.title)} ${tag(i)}</h2>
@@ -113,8 +138,8 @@ return`<div class="hero" ${i.img?`style="background-image:url(${i.img})"`:''}>${
 <div class="card it"><div class="th" style="border-radius:50%">👤</div><div><b>ผู้ประกาศ</b><div class="mu">${esc(i.by)} · นักศึกษา มศว${S.verified.id?' · ✅ ยืนยันตัวตนแล้ว':''}</div><div class="mu">ติดต่อ: ${esc(i.contact)}</div></div></div>
 ${sim.length?`<div class="hd">✨ รายการที่อาจตรงกัน</div>${sim.map(itemRow).join('')}`:''}
 <div class="up"><button class="btn" onclick="location.hash='chat-${i.id}'">💬 ติดต่อผู้ประกาศ</button><button class="btn o" onclick="tsv(${i.id})">${sv?'💙 บันทึกแล้ว':'🤍 บันทึก'}</button></div>
-${i.st==='open'?`<button class="btn g" onclick="dn(${i.id})">${i.type==='lost'?'ได้ของคืนแล้ว':'ส่งคืนเจ้าของแล้ว'}</button>`:''}
-<button class="btn o" style="color:var(--rd);border-color:var(--rd)" onclick="rm(${i.id})">ลบประกาศ</button></main>`}
+${own&&i.st==='open'?`<button class="btn g" onclick="dn(${i.id})">${i.type==='lost'?'ได้ของคืนแล้ว':'ส่งคืนเจ้าของแล้ว'}</button>`:''}
+${own?`<button class="btn o" style="color:var(--rd);border-color:var(--rd)" onclick="rm(${i.id})">ลบประกาศ</button>`:''}</main>`}
 function tsv(id){S.saved=S.saved.includes(id)?S.saved.filter(x=>x!==id):[...S.saved,id];save();render()}
 function dn(id){get(id).st='done';save();toast('ปิดประกาศแล้ว 🎉');render()}
 function rm(id){if(!confirm('ลบประกาศนี้?'))return;S.items=S.items.filter(i=>i.id!==id);save();location.hash='home'}
@@ -151,7 +176,7 @@ function scanRes(){const r=S.items.filter(i=>i.st==='open').slice(0,3);const e=d
 function me(){const u=S.user||{name:'นักศึกษา ก.',email:'student@g.swu.ac.th'},mine=S.items.filter(i=>i.mine);return`${bar('โปรไฟล์ / ประวัติประกาศ',0,'<button class="ib" onclick="location.hash=\'prefs\'">⚙️</button>')}<main><div class="card" style="text-align:center"><div class="av">👩‍🎓</div><b>${esc(u.name)}</b><div class="mu">นักศึกษา มศว · ${esc(u.email)}</div></div>
 <div class="card stat"><div><b>${S.items.filter(i=>i.type==='lost').length}</b><span class="mu">ประกาศของหาย</span></div><div><b>${S.items.filter(i=>i.type==='found').length}</b><span class="mu">ของที่เก็บได้</span></div><div><b>${S.items.filter(i=>i.st==='done').length}</b><span class="mu">ได้คืนแล้ว</span></div></div>
 <div class="card"><div class="mn" onclick="location.hash='hist'"><i>📄</i><span>ประวัติประกาศ</span>›</div><div class="mn" onclick="location.hash='saved'"><i>💙</i><span>รายการที่บันทึกไว้ (${S.saved.length})</span>›</div><div class="mn" onclick="location.hash='prefs'"><i>⚙️</i><span>ตั้งค่า</span>›</div><div class="mn" onclick="location.hash='verify'"><i>✅</i><span>ยืนยันตัวตน</span><span class="tag ${S.verified.id?'t-found':'t-done'}">${S.verified.id?'ยืนยันแล้ว':'ยังไม่ยืนยัน'}</span></div></div></main>`}
-const hist=()=>bar('ประวัติประกาศ',1)+'<main>'+(S.items.filter(i=>i.mine).map(itemRow).join('')||'<p class="mu" style="text-align:center;padding:30px">ยังไม่มีประกาศของคุณ กดปุ่ม + เพื่อสร้างประกาศแรก</p>')+'</main>';
+const hist=()=>bar('ประวัติประกาศ',1)+'<main>'+(S.items.filter(i=>i.owner===S.user.email).map(itemRow).join('')||'<p class="mu" style="text-align:center;padding:30px">ยังไม่มีประกาศของคุณ กดปุ่ม + เพื่อสร้างประกาศแรก</p>')+'</main>';
 const saved=()=>bar('รายการที่บันทึกไว้',1)+'<main>'+(S.items.filter(i=>S.saved.includes(i.id)).map(itemRow).join('')||'<p class="mu" style="text-align:center;padding:30px">ยังไม่มีรายการที่บันทึก</p>')+'</main>';
 
 /* 11 verify */
@@ -165,18 +190,23 @@ const T=[['all','ทั้งหมด'],['lost','ของหาย'],['found',
 
 /* 13 prefs */
 function prefs(){const u=S.user||{name:'นักศึกษา ก.'};return`${bar('ตั้งค่าโปรไฟล์',1)}<main><div class="card" style="text-align:center"><div class="av">👩‍🎓</div><b>${esc(u.name)}</b><div class="mu">นักศึกษา มศว</div></div>
-<div class="card"><div class="mn" onclick="ed()"><i>👤</i><span>ข้อมูลส่วนตัว</span>›</div><div class="mn" onclick="location.hash='verify'"><i>✅</i><span>การยืนยันตัวตน</span>›</div><div class="mn" onclick="location.hash='hist'"><i>📄</i><span>ประวัติประกาศ</span>›</div><div class="mn" onclick="location.hash='notif'"><i>🔔</i><span>การแจ้งเตือน</span>›</div><div class="mn" onclick="toast('ติดต่อ: lostfound@swu.ac.th (ตัวอย่าง)')"><i>🎧</i><span>ติดต่อผู้ดูแล / แจ้งปัญหา</span>›</div><div class="mn" onclick="if(confirm('ล้างข้อมูลตัวอย่างทั้งหมด?')){localStorage.removeItem('slf');S=seed();location.hash='login';render()}"><i>🗑️</i><span>รีเซ็ตข้อมูลเดโม</span>›</div><div class="mn" onclick="S.user=null;save();location.hash='login'"><i>↩️</i><span>ออกจากระบบ</span>›</div></div></main>`}
-function ed(){const n=prompt('ชื่อที่แสดง',(S.user&&S.user.name)||'');if(n){S.user=Object.assign(S.user||{email:''},{name:n});save();render()}}
+<div class="card"><div class="mn" onclick="ed()"><i>👤</i><span>ข้อมูลส่วนตัว</span>›</div><div class="mn" onclick="location.hash='verify'"><i>✅</i><span>การยืนยันตัวตน</span>›</div><div class="mn" onclick="cpw()"><i>🔒</i><span>เปลี่ยนรหัสผ่าน</span>›</div><div class="mn" onclick="location.hash='hist'"><i>📄</i><span>ประวัติประกาศ</span>›</div><div class="mn" onclick="location.hash='notif'"><i>🔔</i><span>การแจ้งเตือน</span>›</div><div class="mn" onclick="toast('ติดต่อ: lostfound@swu.ac.th (ตัวอย่าง)')"><i>🎧</i><span>ติดต่อผู้ดูแล / แจ้งปัญหา</span>›</div><div class="mn" onclick="if(confirm('ล้างข้อมูลตัวอย่างทั้งหมด?')){localStorage.removeItem('slf');S=seed();location.hash='login';render()}"><i>🗑️</i><span>รีเซ็ตข้อมูลเดโม</span>›</div><div class="mn" onclick="if(confirm('ออกจากระบบ?')){S.user=null;save();location.hash='login'}"><i>↩️</i><span>ออกจากระบบ</span>›</div></div></main>`}
+function ed(){const n=prompt('ชื่อที่แสดง',(S.user&&S.user.name)||'');if(n&&n.trim()){S.user.name=n.trim();const u=U();if(u[S.user.email]){u[S.user.email].name=S.user.name;sU(u)}save();render();toast('บันทึกชื่อแล้ว ✓')}}
 
 /* router */
 const NAV=[['home','🏠','หน้าหลัก'],['map','📍','แผนที่'],['post','+',''],['cal','📅','ปฏิทิน'],['me','👤','โปรไฟล์']];
 function render(){const h=location.hash.slice(1)||'login',[r,...rest]=h.split('-'),a=rest.join('-');
 const P={login:()=>login(0),register:()=>login(1),home,post,map,cal,me,scan,verify,notif,prefs,hist,saved,item:()=>item(a),chat:()=>chat(a),event:()=>event(a)};
 if(!S.user&&!['login','register'].includes(r)){location.hash='login';return}
+if(S.user&&['login','register'].includes(r)){location.hash='home';return}
 const y=window.scrollY;$('#v').innerHTML=(P[r]||home)();
 const showNav=['home','post','map','cal','me'].includes(r);$('#nv').style.display=showNav?'flex':'none';$('#nv').innerHTML=NAV.map(([k,i,l])=>k==='post'?`<button class="fab" onclick="location.hash='post'">+</button>`:`<button class="${r===k?'on':''}" onclick="location.hash='${k}'"><i>${i}</i>${l}</button>`).join('');
 const same=r==='chat'||r==='cal'||r==='map'||r==='home';if(same)window.scrollTo(0,y);else window.scrollTo(0,0);
 if(r==='chat'){const m=$('#ms');if(m)window.scrollTo(0,document.body.scrollHeight)}}
+const TT={login:'เข้าสู่ระบบ',register:'สมัครสมาชิก',home:'หน้าหลัก',post:'ประกาศ',map:'แผนที่',cal:'ปฏิทิน',me:'โปรไฟล์',scan:'สแกนรูป',verify:'ยืนยันตัวตน',notif:'แจ้งเตือน',prefs:'ตั้งค่า',hist:'ประวัติประกาศ',saved:'รายการที่บันทึก',item:'รายละเอียดประกาศ',chat:'แชท',event:'กิจกรรมรายวัน'};
+const R0=render;render=function(){R0();document.querySelectorAll('#v [onclick]').forEach(e=>{if(!/^(BUTTON|A|INPUT|SELECT)$/.test(e.tagName)){e.setAttribute('role','button');e.tabIndex=0}});document.title=(TT[(location.hash.slice(1)||'login').split('-')[0]]||'')+' – Smart Lost & Found'};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const s=document.querySelector('.sheet');if(s)s.remove()}if(e.key==='Enter'&&e.target.matches('.card .in')&&['login','register'].includes(location.hash.slice(1)||'login')){const b=document.querySelector('.card .btn');if(b)b.click()}});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[role=button]')){e.preventDefault();e.target.click()}});
 window.addEventListener('hashchange',render);render();
 </script>
 </body>
