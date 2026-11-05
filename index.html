@@ -6,6 +6,7 @@
 <title>Smart Lost & Found – ของหายได้คืน</title>
 <meta name="description" content="เว็บแจ้งของหาย/ของที่เก็บได้ สำหรับนักศึกษา มศว">
 <meta name="theme-color" content="#2f6fe4">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>🎒</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -51,6 +52,21 @@ nav .fab{flex:none;width:54px;height:54px;border-radius:50%;background:var(--b);
 :focus-visible{outline:3px solid #7fb0ff;outline-offset:2px}
 .logo{text-align:center;padding:36px 0 10px}.logo .lg{font-size:70px}.logo h1{font-size:30px;line-height:1.1;color:var(--b)}.logo p{color:var(--mu);margin-top:4px}
 .sheet{position:fixed;inset:0;background:#0006;z-index:40;display:flex;align-items:flex-end;justify-content:center}.sheet>div{background:var(--bg);width:100%;max-width:480px;max-height:80vh;overflow:auto;border-radius:22px 22px 0 0;padding:16px}
+.mapf{border-radius:18px;overflow:hidden;border:1px solid var(--ln);background:var(--bl2);height:300px}.mapf iframe{width:100%;height:100%;border:0;display:block}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid var(--ln);background:var(--w);color:var(--tx);border-radius:99px;padding:7px 13px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}.chip.on{background:var(--b);border-color:var(--b);color:#fff}.chip b{font-weight:500;opacity:.7;margin-left:6px}
+a.btn{text-decoration:none}
+.leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-tile-container,.leaflet-layer{position:absolute;left:0;top:0}.leaflet-container{overflow:hidden;background:#dde8f7;touch-action:none;font:inherit}
+.leaflet-tile,.leaflet-marker-icon{user-select:none;-webkit-user-drag:none}.leaflet-tile{visibility:hidden}.leaflet-tile-loaded{visibility:inherit}
+.leaflet-zoom-animated{transform-origin:0 0}.leaflet-zoom-anim .leaflet-zoom-animated{transition:transform .25s cubic-bezier(0,0,.25,1)}.leaflet-zoom-anim .leaflet-tile,.leaflet-pan-anim .leaflet-tile{transition:none}
+.leaflet-pane{z-index:400}.leaflet-tile-pane{z-index:200}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}
+.leaflet-control{position:relative;z-index:800;pointer-events:auto;float:left;clear:both}.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}.leaflet-top{top:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-right{right:0}
+.leaflet-right .leaflet-control{float:right;margin-right:10px}.leaflet-top .leaflet-control{margin-top:10px}.leaflet-left .leaflet-control{margin-left:10px}.leaflet-bottom .leaflet-control{margin-bottom:6px}
+.leaflet-bar{box-shadow:0 1px 5px #0004;border-radius:8px;overflow:hidden}.leaflet-bar a{background:#fff;color:#17325c;display:block;width:34px;height:34px;line-height:34px;text-align:center;text-decoration:none;border-bottom:1px solid #d6e4fa;font-size:20px}
+.leaflet-control-attribution{background:#fffc;font-size:10px;padding:0 5px}.leaflet-div-icon{background:none;border:0}
+.leaflet-tooltip{position:absolute;padding:3px 8px;background:#fff;border:1px solid #bcd0ee;border-radius:8px;white-space:nowrap;font-size:12px;box-shadow:0 1px 3px #0003;pointer-events:none}
+.leaflet-popup{position:absolute}.leaflet-popup-content-wrapper{background:#fff;border-radius:14px;box-shadow:0 3px 14px #0004}.leaflet-popup-content{margin:10px 14px;font-size:13px}.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:15px;height:15px;margin:-8px auto 0;transform:rotate(45deg);background:#fff}.leaflet-popup-close-button{position:absolute;top:0;right:0;padding:4px 8px;text-decoration:none;color:#757575}
+.unr{border-color:var(--b)!important;background:#f3f8ff!important}.av img{width:100%;height:100%;border-radius:50%;object-fit:cover}.avb{position:absolute;right:-4px;bottom:-4px;background:var(--b);border-radius:50%;width:24px;height:24px;font-size:12px;display:flex;align-items:center;justify-content:center}
 </style>
 </head>
 <body>
@@ -59,15 +75,16 @@ nav .fab{flex:none;width:54px;height:54px;border-radius:50%;background:var(--b);
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const CATS=[['👜','กระเป๋า'],['📱','มือถือ'],['🔑','กุญแจ'],['🪪','บัตรนักศึกษา'],['📓','เอกสาร'],['👕','เครื่องแต่งกาย'],['✏️','อุปกรณ์การเรียน'],['⋯','อื่นๆ']];
-const PL={'ห้องสมุดกลาง':[30,35],'อาคารเรียนรวม':[62,28],'โรงอาหารกลาง':[45,62],'อาคารกิจกรรมนิสิต':[75,60],'ลานจอดรถ':[20,75],'ป้ายรถรับส่ง':[82,85]};
+const MQ='มหาวิทยาลัยศรีนครินทรวิโรฒ ประสานมิตร',PL={'สำนักหอสมุดกลาง':'สำนักหอสมุดกลาง '+MQ,'อาคารเรียนรวม (Learning Tower)':'อาคารเรียนรวม หลวงสวัสดิศาสตรพุทธิ '+MQ,'โรงอาหาร':'โรงอาหาร '+MQ,'อาคารกิจกรรมนิสิต':'อาคารกิจกรรมนิสิต '+MQ,'ทางเข้า ซอยสุขุมวิท 23':'ซอยสุขุมวิท 23 '+MQ,'ทางเข้า ถนนอโศกมนตรี':'ถนนอโศกมนตรี '+MQ,'ทางเข้า ถนนเพชรบุรี':'ถนนเพชรบุรี '+MQ};
 const D=864e5,now=Date.now();
 const seed=()=>({items:[
-{id:1,type:'lost',cat:0,title:'กระเป๋าสตางค์',desc:'กระเป๋าสตางค์หนังสีดำ ยี่ห้อ Uniqlo ภายในมีบัตรนักศึกษาและเงินสดส่วนหนึ่ง',place:'ห้องสมุดกลาง',d:now-1*D,contact:'LINE: nong_ta',by:'นักศึกษา ก.',st:'open'},
-{id:2,type:'found',cat:1,title:'โทรศัพท์มือถือ',desc:'iPhone สีน้ำเงิน เคสใส เก็บได้ที่ใต้โต๊ะ ฝากไว้ที่จุดบริการนิสิตแล้ว',place:'โรงอาหารกลาง',d:now-2*D,contact:'โทร 081-234-5678',by:'นักศึกษา ข.',st:'open'},
-{id:3,type:'found',cat:2,title:'กุญแจ',desc:'พวงกุญแจห้อยตุ๊กตาหมี 3 ดอก มีรีโมทรถ',place:'ลานจอดรถ',d:now-3*D,contact:'IG: swu.keys',by:'นักศึกษา ค.',st:'open'},
-{id:4,type:'lost',cat:6,title:'กล่องดินสอสีเขียว',desc:'มีปากกาและยางลบอยู่ข้างใน',place:'อาคารเรียนรวม',d:now-0*D,contact:'LINE: pim99',by:'นักศึกษา ง.',st:'open'}],
+{id:1,type:'lost',cat:0,title:'กระเป๋าสตางค์',desc:'กระเป๋าสตางค์หนังสีดำ ยี่ห้อ Uniqlo ภายในมีบัตรนักศึกษาและเงินสดส่วนหนึ่ง',place:'สำนักหอสมุดกลาง',d:now-1*D,contact:'LINE: nong_ta',by:'นักศึกษา ก.',st:'open'},
+{id:2,type:'found',cat:1,title:'โทรศัพท์มือถือ',desc:'iPhone สีน้ำเงิน เคสใส เก็บได้ที่ใต้โต๊ะ ฝากไว้ที่จุดบริการนิสิตแล้ว',place:'โรงอาหาร',d:now-2*D,contact:'โทร 081-234-5678',by:'นักศึกษา ข.',st:'open'},
+{id:3,type:'found',cat:2,title:'กุญแจ',desc:'พวงกุญแจห้อยตุ๊กตาหมี 3 ดอก มีรีโมทรถ',place:'ทางเข้า ซอยสุขุมวิท 23',d:now-3*D,contact:'IG: swu.keys',by:'นักศึกษา ค.',st:'open'},
+{id:4,type:'lost',cat:6,title:'กล่องดินสอสีเขียว',desc:'มีปากกาและยางลบอยู่ข้างใน',place:'อาคารเรียนรวม (Learning Tower)',d:now-0*D,contact:'LINE: pim99',by:'นักศึกษา ง.',st:'open'}],
 chats:{},verified:{},saved:[],next:10,user:null});
 let S;try{S=JSON.parse(localStorage.getItem('slf')||'null')}catch(e){}if(!S)S=seed();
+(()=>{const L={'ห้องสมุดกลาง':'สำนักหอสมุดกลาง','อาคารเรียนรวม':'อาคารเรียนรวม (Learning Tower)','โรงอาหารกลาง':'โรงอาหาร','ลานจอดรถ':'ทางเข้า ซอยสุขุมวิท 23','ป้ายรถรับส่ง':'ทางเข้า ถนนอโศกมนตรี'};(S.items||[]).forEach(i=>{if(L[i.place])i.place=L[i.place]})})();
 const save=()=>{try{localStorage.setItem('slf',JSON.stringify(S))}catch(e){toast('พื้นที่เก็บข้อมูลเต็ม')}};
 function toast(m){const e=document.createElement('div');e.className='toast';e.textContent=m;document.body.appendChild(e);setTimeout(()=>e.remove(),2000)}
 const fd=(t,o)=>new Date(t).toLocaleDateString('th-TH',o||{day:'numeric',month:'short',year:'numeric'}),ft=t=>new Date(t).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}),dk=t=>{const x=new Date(t);return x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate()};
@@ -106,9 +123,9 @@ else{const a=u[em];if(!a||a.hash!==await hp(pw,a.salt))return er('อีเม�
 S.user={name:u[em].name,email:em};save();toast('ยินดีต้อนรับ '+u[em].name);location.hash='home'}
 async function cpw(){const u=U(),a=u[S.user.email];if(!a){toast('บัญชีนี้ยังไม่มีรหัสผ่าน');return}const o=prompt('รหัสผ่านเดิม');if(o===null)return;if(a.hash!==await hp(o,a.salt)){toast('รหัสผ่านเดิมไม่ถูกต้อง');return}const n=prompt('รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)');if(!n||n.length<8){toast('รหัสผ่านใหม่สั้นเกินไป');return}a.salt=rs();a.hash=await hp(n,a.salt);sU(u);toast('เปลี่ยนรหัสผ่านแล้ว ✓')}
 /* 2 home */
-function home(){const l=listHome();return`${bar('Smart Lost & Found',0,'<button class="ib" onclick="location.hash=\'scan\'">📷</button><button class="ib" onclick="location.hash=\'notif\'">🔔<span class="dot"></span></button>')}<main>
+function home(){const l=listHome();return`${bar('Smart Lost & Found',0,'<button class="ib" onclick="location.hash=\'scan\'">📷</button><button class="ib" onclick="location.hash=\'notif\'">🔔'+(unread()?'<span class="dot"></span>':'')+'</button>')}<main>
 <input class="in" id="q" placeholder="🔎 ค้นหาของหาย / ของที่เก็บได้" value="${esc(q)}" oninput="q=this.value;$('#lst').innerHTML=listHome()">
-<div class="ban"><b>📢 ประชาสัมพันธ์</b>ประกาศ: พบกระเป๋าสตางค์ ที่ห้องสมุดกลาง ชั้น 1<br><small>${fd(now)}</small></div>
+<div class="ban"><b>📢 ประชาสัมพันธ์</b>ประกาศ: พบกระเป๋าสตางค์ ที่สำนักหอสมุดกลาง ชั้น 1<br><small>${fd(now)}</small></div>
 <div class="grid">${CATS.map((c,i)=>`<button class="cat ${fc===i?'on':''}" onclick="fc=fc===${i}?-1:${i};render()"><span>${c[0]}</span>${c[1]}</button>`).join('')}</div>
 <div class="hd">ของหายล่าสุด<a onclick="q='';fc=-1;render()">ดูทั้งหมด</a></div><div id="lst">${l}</div></main>`}
 function listHome(){const w=q.toLowerCase().split(/\s+/).filter(Boolean);const a=S.items.filter(i=>(fc<0||i.cat===fc)&&w.every(x=>(i.title+i.desc+i.place+CATS[i.cat][1]).toLowerCase().includes(x))).sort((a,b)=>(a.st==='done')-(b.st==='done')||b.d-a.d);return a.length?a.map(itemRow).join(''):'<div class="mu" style="text-align:center;padding:30px">ไม่พบรายการ ลองเปลี่ยนคำค้นหา หรือประกาศใหม่</div>'}
@@ -120,6 +137,7 @@ function post(){return`${bar('ประกาศ / สร้างโพสต�
 <label class="l">ชื่อสิ่งของ <i>*</i></label><input class="in" id="title" placeholder="เช่น กระเป๋าสตางค์สีดำ" value="${esc(F.title)}">
 <label class="l">รายละเอียดของสิ่งของ <i>*</i></label><textarea id="desc" rows="3" placeholder="สี ยี่ห้อ ลักษณะเด่น">${esc(F.desc)}</textarea>
 <label class="l">สถานที่ที่พบ <i>*</i></label><select id="place"><option value="">เลือกสถานที่</option>${Object.keys(PL).map(p=>`<option ${F.place===p?'selected':''}>${p}</option>`).join('')}</select>
+<label class="l">ปักหมุดตำแหน่งที่แน่นอน (ไม่บังคับ)</label><div id="pmap" class="mapf" style="height:220px"></div><p class="mu" id="pll" style="margin-top:6px">${PICK?'ปักหมุดแล้ว':'แตะบนแผนที่เพื่อปักหมุด ผู้อื่นจะเห็นตำแหน่งบนแผนที่'}</p>
 <label class="l">วันที่พบ <i>*</i></label><div class="up"><input class="in" type="date" id="date" value="${F.date}"><input class="in" type="time" id="time" value="${F.time}"></div>
 <label class="l">ช่องทางติดต่อ (ถ้ามี)</label><input class="in" id="contact" placeholder="เบอร์โทร / Line / อื่นๆ" value="${esc(F.contact)}"><button class="btn" onclick="submitPost()">โพสต์ประกาศ</button></main>`}
 function sf(){['cat','title','desc','place','date','time','contact'].forEach(k=>{const e=$('#'+k);if(e)F[k]=e.value})}
@@ -152,9 +170,20 @@ return`${bar(esc(i.by),1)}<div class="card it" style="margin:10px 14px 0" onclic
 function send(id){const e=$('#cmsg'),t=e.value.trim();if(!t)return;S.chats[id].push({w:'me',t});save();render();setTimeout(()=>{S.chats[id].push({w:'o',t:'ได้ค่ะ นัดรับที่จุดบริการนิสิตหรือห้องสมุดได้ไหมคะ'});save();if(location.hash==='#chat-'+id)render()},700)}
 
 /* 6 map */
-function map(){const sh=msel&&S.items.filter(i=>i.place===msel&&i.st==='open');return`${bar('แผนที่ตำแหน่งที่พบของ')}<main><div class="map">${Object.entries(PL).map(([p,[x,y]])=>{const n=S.items.filter(i=>i.place===p&&i.st==='open').length;return n?`<button class="pin" style="left:${x}%;top:${y}%" onclick="msel='${p}';render()">📍</button>`:''}).join('')}</div>
-${msel?`<div class="hd">${msel}</div>${sh.map(itemRow).join('')}`:'<p class="mu" style="margin-top:10px">แตะหมุดบนแผนที่เพื่อดูรายการที่พบในบริเวณนั้น</p>'}
-<div class="hd">สถานที่ทั้งหมด</div>${Object.keys(PL).map(p=>`<div class="card" onclick="msel='${p}';render()" style="cursor:pointer">📍 ${p} <span class="mu">· ${S.items.filter(i=>i.place===p&&i.st==='open').length} รายการ</span></div>`).join('')}</main>`}
+const CAMPUS=[13.7469129,100.5656555],gm=q=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);
+const PI={'สำนักหอสมุดกลาง':'เปิดจันทร์–ศุกร์ 08.00–20.00 น. (ภาคเรียนนี้ 3 ส.ค.–8 ธ.ค. 2569) โซน Learning Space ชั้น 1 และวันหยุดเวลาอาจต่างออกไป ดูประกาศของหอสมุดก่อนไป','อาคารเรียนรวม (Learning Tower)':'อาคารหมายเลข 31 ชื่อเต็ม อาคารเรียนรวม หลวงสวัสดิศาสตรพุทธิ มีสำนักนวัตกรรมการเรียนรู้อยู่ชั้น 6','ทางเข้า ซอยสุขุมวิท 23':'หนึ่งใน 3 เส้นทางเข้ามหาวิทยาลัย ที่อยู่ 114 ซอยสุขุมวิท 23 เขตวัฒนา','ทางเข้า ถนนอโศกมนตรี':'หนึ่งใน 3 เส้นทางเข้ามหาวิทยาลัย','ทางเข้า ถนนเพชรบุรี':'หนึ่งใน 3 เส้นทางเข้ามหาวิทยาลัย เดินจาก MRT เพชรบุรีได้'};
+function map(){const ks=Object.keys(PL),open=p=>S.items.filter(i=>i.place===p&&i.st==='open'),list=msel?open(msel):S.items.filter(i=>i.st==='open').sort((a,b)=>b.d-a.d).slice(0,5);
+return`${bar('แผนที่ มศว ประสานมิตร')}<main>
+<div id="lmap" class="mapf" style="height:340px" role="region" aria-label="แผนที่มหาวิทยาลัย"></div>
+<p class="mu" style="margin-top:6px">🔴 ของหาย · 🟢 ของที่เก็บได้ · 📍 สถานที่ในมหาวิทยาลัย</p>
+<div class="chips"><button class="chip ${msel?'':'on'}" onclick="msel='';render()">ทั้งหมด</button>${ks.map((p,i)=>`<button class="chip ${msel===p?'on':''}" onclick="msel=Object.keys(PL)[${i}];render()">${esc(p)}<b>${open(p).length}</b></button>`).join('')}</div>
+<a class="btn" style="margin-top:0" href="${gm(msel?PL[msel]:CAMPUS.join(','))}" target="_blank" rel="noopener">🧭 เปิดใน Google Maps / นำทาง</a>
+<p class="mu" style="text-align:center;margin-top:6px">ถ้าแผนที่ด้านบนไม่ขึ้น ให้กดปุ่มนี้แทน</p>
+${msel&&PI[msel]?`<div class="card" style="margin-top:12px"><b>📍 ${esc(msel)}</b><p class="mu" style="margin-top:4px">${PI[msel]}</p></div>`:''}
+<div class="hd">${msel?'รายการที่ '+esc(msel):'รายการล่าสุด'}</div>
+${list.length?list.map(itemRow).join(''):`<div class="card" style="text-align:center"><p class="mu">ยังไม่มีรายการที่จุดนี้</p><button class="btn" onclick="location.hash='post'">ประกาศของหาย / ของที่เก็บได้</button></div>`}
+<div class="card"><b>🏫 ที่ตั้ง</b><p class="mu" style="margin-top:4px">114 ซอยสุขุมวิท 23 แขวงคลองเตยเหนือ เขตวัฒนา กรุงเทพฯ 10110<br>เข้าได้ 3 ทาง: ซอยสุขุมวิท 23, ถนนอโศกมนตรี, ถนนเพชรบุรี</p></div>
+<p class="mu" style="text-align:center">💡 นัดรับของในที่สาธารณะที่มีคนพลุกพล่าน และไม่โอนเงินก่อนได้รับของ</p></main>`}
 
 /* 7 calendar */
 function cal(){const y=cm.getFullYear(),mo=cm.getMonth(),first=new Date(y,mo,1).getDay(),dim=new Date(y,mo+1,0).getDate(),has=new Set(S.items.map(i=>dk(i.d)));let c=['อา','จ','อ','พ','พฤ','ศ','ส'].map(d=>`<div class="h">${d}</div>`).join('')+'<span></span>'.repeat(first);
@@ -173,7 +202,7 @@ function sp(i){if(i.files[0])readImg(i.files[0],d=>{scanImg=d;render()})}
 function scanRes(){const r=S.items.filter(i=>i.st==='open').slice(0,3);const e=document.createElement('div');e.className='sheet';e.onclick=x=>{if(x.target===e)e.remove()};e.innerHTML=`<div><div class="hd" style="margin-top:0">ผลการค้นหา (ตัวอย่างเดโม)</div><p class="mu" style="margin-bottom:10px">เวอร์ชันนี้ยังไม่ได้เชื่อม AI วิเคราะห์ภาพจริง จึงแสดงรายการล่าสุดเป็นตัวอย่าง</p>${r.map((i,n)=>itemRow(i).replace('</h3>',`</h3><span class="mu">ความคล้าย ${90-n*12}%</span>`)).join('')}</div>`;document.body.appendChild(e)}
 
 /* 10 profile */
-function me(){const u=S.user||{name:'นักศึกษา ก.',email:'student@g.swu.ac.th'},mine=S.items.filter(i=>i.mine);return`${bar('โปรไฟล์ / ประวัติประกาศ',0,'<button class="ib" onclick="location.hash=\'prefs\'">⚙️</button>')}<main><div class="card" style="text-align:center"><div class="av">👩‍🎓</div><b>${esc(u.name)}</b><div class="mu">นักศึกษา มศว · ${esc(u.email)}</div></div>
+function me(){const u=S.user||{name:'นักศึกษา ก.',email:'student@g.swu.ac.th'},mine=S.items.filter(i=>i.mine);return`${bar('โปรไฟล์ / ประวัติประกาศ',0,'<button class="ib" onclick="location.hash=\'prefs\'">⚙️</button>')}<main><div class="card" style="text-align:center">${avh()}<b>${esc(u.name)}</b><div class="mu">นักศึกษา มศว · ${esc(u.email)}</div></div>
 <div class="card stat"><div><b>${S.items.filter(i=>i.type==='lost').length}</b><span class="mu">ประกาศของหาย</span></div><div><b>${S.items.filter(i=>i.type==='found').length}</b><span class="mu">ของที่เก็บได้</span></div><div><b>${S.items.filter(i=>i.st==='done').length}</b><span class="mu">ได้คืนแล้ว</span></div></div>
 <div class="card"><div class="mn" onclick="location.hash='hist'"><i>📄</i><span>ประวัติประกาศ</span>›</div><div class="mn" onclick="location.hash='saved'"><i>💙</i><span>รายการที่บันทึกไว้ (${S.saved.length})</span>›</div><div class="mn" onclick="location.hash='prefs'"><i>⚙️</i><span>ตั้งค่า</span>›</div><div class="mn" onclick="location.hash='verify'"><i>✅</i><span>ยืนยันตัวตน</span><span class="tag ${S.verified.id?'t-found':'t-done'}">${S.verified.id?'ยืนยันแล้ว':S.verified.status==='pending'?'รอตรวจสอบ':'ยังไม่ยืนยัน'}</span></div></div></main>`}
 const hist=()=>bar('ประวัติประกาศ',1)+'<main>'+(S.items.filter(i=>i.owner===S.user.email).map(itemRow).join('')||'<p class="mu" style="text-align:center;padding:30px">ยังไม่มีประกาศของคุณ กดปุ่ม + เพื่อสร้างประกาศแรก</p>')+'</main>';
@@ -198,11 +227,21 @@ function vA(){const v=S.verified;v.status='ok';v.id=true;save();render();toast('
 function vR(){if(!confirm('เริ่มกรอกใหม่?'))return;S.verified={};save();render()}
 
 /* 12 notifications */
-function notif(){const N=[['found','🔔','พบสิ่งของที่คล้ายกับของที่คุณประกาศ','กระเป๋าสตางค์ · '+ft(now-36e5)],['found','✅','สถานะการรับของได้รับการอัปเดต','ผู้พบยืนยันว่าส่งคืนแล้ว · '+fd(now-D)],['lost','💬','มีข้อความใหม่','จาก นักศึกษา ข. · '+ft(now-9e5)],['sys','📅','ประกาศกิจกรรมตามหาของ','จุดบริการนิสิต เปิดรับของวันนี้ 10.00–16.00 น.'],['sys','ℹ️','ระบบ','ยินดีต้อนรับสู่ Smart Lost & Found']];
-const T=[['all','ทั้งหมด'],['lost','ของหาย'],['found','ของที่เก็บได้'],['sys','ระบบ']];return`${bar('แจ้งเตือน',1)}<main><div class="seg" style="overflow-x:auto">${T.map(([k,l])=>`<button class="${nt===k?'on':''}" style="white-space:nowrap" onclick="nt='${k}';render()">${l}</button>`).join('')}</div><div style="margin-top:12px">${N.filter(n=>nt==='all'||n[0]===nt).map(n=>`<div class="card it"><div class="th" style="border-radius:50%">${n[1]}</div><div><b style="font-weight:500">${n[2]}</b><div class="mu">${n[3]}</div></div></div>`).join('')}</div></main>`}
+function notifs(){const N=[],v=S.verified||{};
+S.items.filter(i=>i.st==='open'&&i.owner!==(S.user&&S.user.email)).sort((a,b)=>b.d-a.d).slice(0,3).forEach(i=>N.push({id:'i'+i.id,k:i.type,ic:i.type==='found'?'🔍':'📍',t:(i.type==='found'?'มีผู้เก็บของได้: ':'มีผู้ประกาศของหาย: ')+i.title,s:i.place+' · '+fd(i.d),h:'item-'+i.id}));
+Object.keys(S.chats).forEach(id=>{const m=S.chats[id],it=get(id);if(it&&m&&m.length>1)N.push({id:'c'+id+'-'+m.length,k:'sys',ic:'💬',t:'ข้อความใหม่ เรื่อง '+it.title,s:m[m.length-1].t,h:'chat-'+id})});
+S.items.filter(i=>i.owner===(S.user&&S.user.email)&&i.st==='done').forEach(i=>N.push({id:'d'+i.id,k:i.type,ic:'✅',t:'ปิดประกาศแล้ว: '+i.title,s:'ส่งคืนเรียบร้อย',h:'item-'+i.id}));
+if(v.status==='pending')N.push({id:'v1',k:'sys',ic:'⏳',t:'คำขอยืนยันตัวตนอยู่ระหว่างตรวจสอบ',s:'แตะเพื่อดูสถานะ',h:'verify'});
+if(v.id)N.push({id:'v2',k:'sys',ic:'🛡️',t:'ยืนยันตัวตนสำเร็จ',s:'ป้ายยืนยันแสดงในโปรไฟล์แล้ว',h:'me'});
+N.push({id:'w',k:'sys',ic:'ℹ️',t:'ยินดีต้อนรับสู่ Smart Lost & Found',s:'เริ่มประกาศของหายหรือของที่เก็บได้ได้เลย',h:'post'});return N}
+const unread=()=>notifs().some(n=>!(S.read||[]).includes(n.id));
+function nOpen(id,h){S.read=[...new Set([...(S.read||[]),id])];save();location.hash=h}
+function nAll(){S.read=notifs().map(n=>n.id);save();render()}
+function notif(){const N=notifs().filter(n=>nt==='all'||n.k===nt),T=[['all','ทั้งหมด'],['lost','ของหาย'],['found','ของที่เก็บได้'],['sys','ระบบ']];
+return`${bar('แจ้งเตือน',1,'<button class="ib" title="อ่านทั้งหมดแล้ว" aria-label="อ่านทั้งหมดแล้ว" onclick="nAll()">✓</button>')}<main><div class="seg" style="overflow-x:auto">${T.map(([k,l])=>`<button class="${nt===k?'on':''}" style="white-space:nowrap" onclick="nt='${k}';render()">${l}</button>`).join('')}</div><div style="margin-top:12px">${N.length?N.map(n=>`<div class="card it ${(S.read||[]).includes(n.id)?'':'unr'}" onclick="nOpen('${n.id}','${n.h}')"><div class="th" style="border-radius:50%">${n.ic}</div><div style="min-width:0"><b style="font-weight:500">${esc(n.t)}</b><div class="mu">${esc(n.s)}</div></div></div>`).join(''):'<p class="mu" style="text-align:center;padding:30px">ไม่มีการแจ้งเตือน</p>'}</div></main>`}
 
 /* 13 prefs */
-function prefs(){const u=S.user||{name:'นักศึกษา ก.'};return`${bar('ตั้งค่าโปรไฟล์',1)}<main><div class="card" style="text-align:center"><div class="av">👩‍🎓</div><b>${esc(u.name)}</b><div class="mu">นักศึกษา มศว</div></div>
+function prefs(){const u=S.user||{name:'นักศึกษา ก.'};return`${bar('ตั้งค่าโปรไฟล์',1)}<main><div class="card" style="text-align:center">${avh()}<b>${esc(u.name)}</b><div class="mu">นักศึกษา มศว</div></div>
 <div class="card"><div class="mn" onclick="ed()"><i>👤</i><span>ข้อมูลส่วนตัว</span>›</div><div class="mn" onclick="location.hash='verify'"><i>✅</i><span>การยืนยันตัวตน</span>›</div><div class="mn" onclick="cpw()"><i>🔒</i><span>เปลี่ยนรหัสผ่าน</span>›</div><div class="mn" onclick="location.hash='hist'"><i>📄</i><span>ประวัติประกาศ</span>›</div><div class="mn" onclick="location.hash='notif'"><i>🔔</i><span>การแจ้งเตือน</span>›</div><div class="mn" onclick="toast('ติดต่อ: lostfound@swu.ac.th (ตัวอย่าง)')"><i>🎧</i><span>ติดต่อผู้ดูแล / แจ้งปัญหา</span>›</div><div class="mn" onclick="if(confirm('ล้างข้อมูลตัวอย่างทั้งหมด?')){localStorage.removeItem('slf');S=seed();location.hash='login';render()}"><i>🗑️</i><span>รีเซ็ตข้อมูลเดโม</span>›</div><div class="mn" onclick="if(confirm('ออกจากระบบ?')){S.user=null;save();location.hash='login'}"><i>↩️</i><span>ออกจากระบบ</span>›</div></div></main>`}
 function ed(){const n=prompt('ชื่อที่แสดง',(S.user&&S.user.name)||'');if(n&&n.trim()){S.user.name=n.trim();const u=U();if(u[S.user.email]){u[S.user.email].name=S.user.name;sU(u)}save();render();toast('บันทึกชื่อแล้ว ✓')}}
 
@@ -217,9 +256,40 @@ const showNav=['home','post','map','cal','me'].includes(r);$('#nv').style.displa
 const same=r==='chat'||r==='cal'||r==='map'||r==='home';if(same)window.scrollTo(0,y);else window.scrollTo(0,0);
 if(r==='chat'){const m=$('#ms');if(m)window.scrollTo(0,document.body.scrollHeight)}}
 const TT={login:'เข้าสู่ระบบ',register:'สมัครสมาชิก',home:'หน้าหลัก',post:'ประกาศ',map:'แผนที่',cal:'ปฏิทิน',me:'โปรไฟล์',scan:'สแกนรูป',verify:'ยืนยันตัวตน',notif:'แจ้งเตือน',prefs:'ตั้งค่า',hist:'ประวัติประกาศ',saved:'รายการที่บันทึก',item:'รายละเอียดประกาศ',chat:'แชท',event:'กิจกรรมรายวัน'};
-const R0=render;render=function(){R0();document.querySelectorAll('#v [onclick]').forEach(e=>{if(!/^(BUTTON|A|INPUT|SELECT)$/.test(e.tagName)){e.setAttribute('role','button');e.tabIndex=0}});document.title=(TT[(location.hash.slice(1)||'login').split('-')[0]]||'')+' – Smart Lost & Found'};
+const R0=render;render=function(){R0();{const r0=location.hash.slice(1);if(r0==='map')initMap();if(r0==='post')initPick()}document.querySelectorAll('#v [onclick]').forEach(e=>{if(!/^(BUTTON|A|INPUT|SELECT)$/.test(e.tagName)){e.setAttribute('role','button');e.tabIndex=0}});document.title=(TT[(location.hash.slice(1)||'login').split('-')[0]]||'')+' – Smart Lost & Found'};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){const s=document.querySelector('.sheet');if(s)s.remove()}if(e.key==='Enter'&&e.target.matches('.card .in')&&['login','register'].includes(location.hash.slice(1)||'login')){const b=document.querySelector('.card .btn');if(b)b.click()}});
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[role=button]')){e.preventDefault();e.target.click()}});
+/* ===== avatar, real map, shared database ===== */
+const SB_URL='',SB_KEY='';/* ใส่ Project URL และ anon key จาก Supabase (ดู README) */
+const ON=!!(SB_URL&&SB_KEY),TILE='https://tile.openstreetmap.org/{z}/{x}/{y}.png',VB='100.558,13.7515,100.5715,13.7405';
+let SES=null,PICK=null,LM=null,GEO={};try{SES=JSON.parse(localStorage.getItem('slf_s')||'null')}catch(e){}try{GEO=JSON.parse(localStorage.getItem('slf_geo')||'{}')}catch(e){}
+const avh=()=>{const a=S.user&&(S.user.avatar||(U()[S.user.email]||{}).avatar);return`<label class="av" style="position:relative;cursor:pointer" title="เปลี่ยนรูปโปรไฟล์">${a?`<img src="${a}" alt="รูปโปรไฟล์">`:'👩‍🎓'}<span class="avb">📷</span><input type="file" accept="image/*" hidden onchange="setAv(this)"></label>`};
+function setAv(i){const f=i.files[0];if(!f)return;if(!/^image\//.test(f.type))return toast('เลือกไฟล์รูปภาพเท่านั้น');readImg(f,d=>{S.user.avatar=d;const u=U();if(u[S.user.email]){u[S.user.email].avatar=d;sU(u)}save();render();toast('เปลี่ยนรูปโปรไฟล์แล้ว ✓')})}
+const ic=e=>L.divIcon({html:'<div style="font-size:26px;line-height:1;filter:drop-shadow(0 2px 2px #0005)">'+e+'</div>',iconSize:[26,26],iconAnchor:[13,26],className:''});
+let lastGeo=0;async function geo(p){if(GEO[p])return GEO[p];const w=1100-(Date.now()-lastGeo);if(w>0)await new Promise(r=>setTimeout(r,w));lastGeo=Date.now();try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&bounded=1&viewbox='+VB+'&accept-language=th&q='+encodeURIComponent(PL[p].replace(MQ,'').trim()));const j=await r.json();if(j[0]){GEO[p]=[+j[0].lat,+j[0].lon];try{localStorage.setItem('slf_geo',JSON.stringify(GEO))}catch(e){}return GEO[p]}}catch(e){}return null}
+const gate=p=>p.startsWith('ทางเข้า');
+async function initMap(){const el=$('#lmap');if(!el)return;if(!window.L){el.innerHTML='<p class="mu" style="padding:24px;text-align:center">โหลดแผนที่ไม่ได้ ตรวจสอบอินเทอร์เน็ต หรือกดปุ่มเปิดใน Google Maps</p>';return}
+const M=LM=L.map(el).setView(CAMPUS,17);L.tileLayer(TILE,{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(M);
+S.items.filter(i=>i.lat&&i.st==='open').forEach(i=>L.marker([i.lat,i.lng],{icon:ic(i.type==='lost'?'🔴':'🟢')}).addTo(M).bindPopup(`<b>${esc(i.title)}</b><br>${esc(i.place)}<br><a href="#item-${i.id}">ดูรายละเอียด</a>`));
+if(msel&&!gate(msel)){const c=await geo(msel);if(c&&LM===M)M.setView(c,19)}
+for(const p of Object.keys(PL).filter(x=>!gate(x))){const c=await geo(p);if(LM!==M)return;if(c)L.marker(c,{icon:ic('📍')}).addTo(M).bindTooltip(p,{permanent:true,direction:'top',offset:[0,-26]})}}
+function initPick(){const el=$('#pmap');if(!el)return;if(!window.L){el.innerHTML='<p class="mu" style="padding:16px">โหลดแผนที่ไม่ได้</p>';return}
+const M=L.map(el).setView(PICK||CAMPUS,PICK?19:17);L.tileLayer(TILE,{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(M);let mk=PICK?L.marker(PICK,{icon:ic('📍')}).addTo(M):null;
+M.on('click',e=>{PICK=[+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)];if(mk)mk.setLatLng(PICK);else mk=L.marker(PICK,{icon:ic('📍')}).addTo(M);$('#pll').textContent='ปักหมุดแล้ว ✓ (แตะอีกครั้งเพื่อย้าย)'})}
+const _sp=submitPost;submitPost=function(){const n=S.items.length,pk=PICK;_sp();if(S.items.length<=n)return;const it=S.items[0];if(pk){it.lat=pk[0];it.lng=pk[1]}PICK=null;save();if(!ON)return;
+rq('POST','/rest/v1/items',{type:it.type,cat:it.cat,title:it.title,descr:it.desc,place:it.place,lat:it.lat||null,lng:it.lng||null,d:it.d,contact:it.contact,by_name:it.by,st:'open',img:it.img||null},'return=representation').then(r=>{const o=it.id;it.id=r[0].id;save();pull.k='';if(location.hash==='#item-'+o)location.hash='item-'+it.id}).catch(e=>{S.items=S.items.filter(x=>x!==it);save();toast('โพสต์ไม่สำเร็จ: '+e.message);location.hash='post'})};
+const _dn=dn;dn=function(id){_dn(id);if(ON)rq('PATCH','/rest/v1/items?id=eq.'+id,{st:'done'}).catch(e=>toast('อัปเดตไม่สำเร็จ: '+e.message))};
+const _rm=rm;rm=function(id){_rm(id);if(ON&&!get(id))rq('DELETE','/rest/v1/items?id=eq.'+id).catch(e=>toast('ลบไม่สำเร็จ: '+e.message))};
+async function rq(m,path,body,pre,retry){const h={apikey:SB_KEY,'Content-Type':'application/json',Authorization:'Bearer '+((S.user&&SES&&SES.access_token)||SB_KEY)};if(pre)h.Prefer=pre;const r=await fetch(SB_URL+path,{method:m,headers:h,body:body?JSON.stringify(body):undefined});
+if(r.status===401&&!retry&&SES&&SES.refresh_token){try{const x=await fetch(SB_URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:SES.refresh_token})});if(x.ok){SES=await x.json();localStorage.setItem('slf_s',JSON.stringify(SES));return rq(m,path,body,pre,1)}}catch(e){}}
+const t=await r.text();let j=null;try{j=t?JSON.parse(t):null}catch(e){}if(!r.ok)throw new Error((j&&(j.msg||j.message||j.error_description))||('HTTP '+r.status));return j}
+const row2=r=>{const me=SES&&S.user&&r.user_id===SES.user.id;return{id:r.id,type:r.type,cat:r.cat,title:r.title,desc:r.descr,place:r.place,lat:r.lat,lng:r.lng,d:+r.d,contact:r.contact,by:r.by_name,st:r.st,img:r.img,mine:me?1:0,owner:me?S.user.email:r.user_id}};
+async function pull(){if(!ON)return;try{const r=await rq('GET','/rest/v1/items?select=*&order=d.desc&limit=200'),n=r.map(row2),k=JSON.stringify(n);if(k!==pull.k){pull.k=k;S.items=n;save();if(['home','map','cal','me','hist','notif','saved','item'].includes(location.hash.slice(1).split('-')[0]))render()}}catch(e){}}
+if(ON){S.items=S.items.filter(i=>i.owner);if(S.user&&!SES){S.user=null;save()}
+const _dl=doLogin;doLogin=async function(m){if(m===2)return _dl(m);const em=$('#em').value.trim().toLowerCase(),pw=$('#pw').value;if(!EM.test(em))return er('กรอกอีเมลให้ถูกต้อง');if(pw.length<8)return er('รหัสผ่านอย่างน้อย 8 ตัวอักษร');
+try{let r;if(m===1){const nm=$('#nm').value.trim();if(nm.length<2)return er('กรอกชื่อ-นามสกุล');if(pw!==$('#pw2').value)return er('รหัสผ่านทั้งสองช่องไม่ตรงกัน');r=await rq('POST','/auth/v1/signup',{email:em,password:pw,data:{name:nm}});if(!r.access_token)return er('สมัครแล้ว กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ')}else r=await rq('POST','/auth/v1/token?grant_type=password',{email:em,password:pw});
+SES=r;localStorage.setItem('slf_s',JSON.stringify(r));S.user={name:(r.user.user_metadata&&r.user.user_metadata.name)||em.split('@')[0],email:em};save();pull.k='';await pull();location.hash='home'}catch(e){er(/invalid login/i.test(e.message)?'อีเมลหรือรหัสผ่านไม่ถูกต้อง':e.message)}};
+pull();setInterval(pull,15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()})}
 window.addEventListener('hashchange',render);render();
 </script>
 </body>
