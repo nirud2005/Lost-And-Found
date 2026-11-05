@@ -73,7 +73,7 @@ a.btn{text-decoration:none}
 <noscript><p style="padding:24px;text-align:center">กรุณาเปิดใช้งาน JavaScript เพื่อใช้งานเว็บไซต์</p></noscript>
 <div id="app"><div id="v"></div><nav id="nv"></nav></div>
 <script>
-const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&','<':'<','>':'>','"':'"'}[c]));
 const CATS=[['👜','กระเป๋า'],['📱','มือถือ'],['🔑','กุญแจ'],['🪪','บัตรนักศึกษา'],['📓','เอกสาร'],['👕','เครื่องแต่งกาย'],['✏️','อุปกรณ์การเรียน'],['⋯','อื่นๆ']];
 const MQ='มหาวิทยาลัยศรีนครินทรวิโรฒ ประสานมิตร',PL={'สำนักหอสมุดกลาง':'สำนักหอสมุดกลาง '+MQ,'อาคารเรียนรวม (Learning Tower)':'อาคารเรียนรวม หลวงสวัสดิศาสตรพุทธิ '+MQ,'โรงอาหาร':'โรงอาหาร '+MQ,'อาคารกิจกรรมนิสิต':'อาคารกิจกรรมนิสิต '+MQ,'ทางเข้า ซอยสุขุมวิท 23':'ซอยสุขุมวิท 23 '+MQ,'ทางเข้า ถนนอโศกมนตรี':'ถนนอโศกมนตรี '+MQ,'ทางเข้า ถนนเพชรบุรี':'ถนนเพชรบุรี '+MQ};
 const D=864e5,now=Date.now();
@@ -260,8 +260,8 @@ const TT={login:'เข้าสู่ระบบ',register:'สมัครส
 const R0=render;render=function(){R0();{const r0=location.hash.slice(1);if(r0==='map')initMap();if(r0==='post')initPick()}document.querySelectorAll('#v [onclick]').forEach(e=>{if(!/^(BUTTON|A|INPUT|SELECT)$/.test(e.tagName)){e.setAttribute('role','button');e.tabIndex=0}});document.title=(TT[(location.hash.slice(1)||'login').split('-')[0]]||'')+' – Smart Lost & Found'};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){const s=document.querySelector('.sheet');if(s)s.remove()}if(e.key==='Enter'&&e.target.matches('.card .in')&&['login','register'].includes(location.hash.slice(1)||'login')){const b=document.querySelector('.card .btn');if(b)b.click()}});
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[role=button]')){e.preventDefault();e.target.click()}});
-/* ===== avatar, real map, shared database ===== */
-const SB_URL='',SB_KEY='';/* ใส่ Project URL และ anon key จาก Supabase (ดู README) */
+/* ===== avatar, real map, shared database (เชื่อมต่อ Supabase แล้ว) ===== */
+const SB_URL='https://qnhbiwpzzzakdikonuxt.supabase.co',SB_KEY='sb_publishable_ypj2F_e4KYDMLW01uVwe-w_AbB09ONK';
 const ON=!!(SB_URL&&SB_KEY),TILE='https://tile.openstreetmap.org/{z}/{x}/{y}.png',VB='100.558,13.7515,100.5715,13.7405';
 let SES=null,PICK=null,LM=null,GEO={};try{SES=JSON.parse(localStorage.getItem('slf_s')||'null')}catch(e){}try{GEO=JSON.parse(localStorage.getItem('slf_geo')||'{}')}catch(e){}
 const avh=()=>{const a=S.user&&(S.user.avatar||(U()[S.user.email]||{}).avatar);return`<label class="av" style="position:relative;cursor:pointer" title="เปลี่ยนรูปโปรไฟล์">${a?`<img src="${a}" alt="รูปโปรไฟล์">`:'👩‍🎓'}<span class="avb">📷</span><input type="file" accept="image/*" hidden onchange="setAv(this)"></label>`};
