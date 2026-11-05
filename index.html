@@ -124,6 +124,7 @@ S.user={name:u[em].name,email:em};save();toast('ยินดีต้อนร�
 async function cpw(){const u=U(),a=u[S.user.email];if(!a){toast('บัญชีนี้ยังไม่มีรหัสผ่าน');return}const o=prompt('รหัสผ่านเดิม');if(o===null)return;if(a.hash!==await hp(o,a.salt)){toast('รหัสผ่านเดิมไม่ถูกต้อง');return}const n=prompt('รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)');if(!n||n.length<8){toast('รหัสผ่านใหม่สั้นเกินไป');return}a.salt=rs();a.hash=await hp(n,a.salt);sU(u);toast('เปลี่ยนรหัสผ่านแล้ว ✓')}
 /* 2 home */
 function home(){const l=listHome();return`${bar('Smart Lost & Found',0,'<button class="ib" onclick="location.hash=\'scan\'">📷</button><button class="ib" onclick="location.hash=\'notif\'">🔔'+(unread()?'<span class="dot"></span>':'')+'</button>')}<main>
+${ON?'':'<div class="card" style="background:#fff8e6;border-color:#f0d9a0"><b>โหมดทดลอง</b><div class="mu">ตอนนี้ประกาศเก็บในเครื่องนี้เท่านั้น เพื่อนจะยังไม่เห็น ต้องเปิดฐานข้อมูลก่อน (ดู README)</div></div>'}
 <input class="in" id="q" placeholder="🔎 ค้นหาของหาย / ของที่เก็บได้" value="${esc(q)}" oninput="q=this.value;$('#lst').innerHTML=listHome()">
 <div class="ban"><b>📢 ประชาสัมพันธ์</b>ประกาศ: พบกระเป๋าสตางค์ ที่สำนักหอสมุดกลาง ชั้น 1<br><small>${fd(now)}</small></div>
 <div class="grid">${CATS.map((c,i)=>`<button class="cat ${fc===i?'on':''}" onclick="fc=fc===${i}?-1:${i};render()"><span>${c[0]}</span>${c[1]}</button>`).join('')}</div>
@@ -136,8 +137,8 @@ function post(){return`${bar('ประกาศ / สร้างโพสต�
 <label class="l">หมวดหมู่ <i>*</i></label><select id="cat"><option value="">เลือกหมวดหมู่</option>${CATS.map((c,i)=>`<option value="${i}" ${F.cat==i&&F.cat!==''?'selected':''}>${c[0]} ${c[1]}</option>`).join('')}</select>
 <label class="l">ชื่อสิ่งของ <i>*</i></label><input class="in" id="title" placeholder="เช่น กระเป๋าสตางค์สีดำ" value="${esc(F.title)}">
 <label class="l">รายละเอียดของสิ่งของ <i>*</i></label><textarea id="desc" rows="3" placeholder="สี ยี่ห้อ ลักษณะเด่น">${esc(F.desc)}</textarea>
-<label class="l">สถานที่ที่พบ <i>*</i></label><select id="place"><option value="">เลือกสถานที่</option>${Object.keys(PL).map(p=>`<option ${F.place===p?'selected':''}>${p}</option>`).join('')}</select>
-<label class="l">ปักหมุดตำแหน่งที่แน่นอน (ไม่บังคับ)</label><div id="pmap" class="mapf" style="height:220px"></div><p class="mu" id="pll" style="margin-top:6px">${PICK?'ปักหมุดแล้ว':'แตะบนแผนที่เพื่อปักหมุด ผู้อื่นจะเห็นตำแหน่งบนแผนที่'}</p>
+<label class="l">สถานที่ที่พบ <i>*</i></label><input class="in" id="place" list="pl" autocomplete="off" placeholder="พิมพ์ชื่อสถานที่ หรือแตะแผนที่ด้านล่าง" value="${esc(F.place)}" onchange="plChg()"><datalist id="pl">${Object.keys(PL).map(p=>`<option value="${esc(p)}">`).join('')}</datalist>
+<label class="l">ปักหมุดตำแหน่งที่แน่นอน (ไม่บังคับ)</label><div id="pmap" class="mapf" style="height:220px"></div><p class="mu" id="pll" style="margin-top:6px">${PICK?'ปักหมุดแล้ว':'แตะบนแผนที่เพื่อปักหมุด ชื่อสถานที่จะถูกกรอกให้อัตโนมัติ'}</p>
 <label class="l">วันที่พบ <i>*</i></label><div class="up"><input class="in" type="date" id="date" value="${F.date}"><input class="in" type="time" id="time" value="${F.time}"></div>
 <label class="l">ช่องทางติดต่อ (ถ้ามี)</label><input class="in" id="contact" placeholder="เบอร์โทร / Line / อื่นๆ" value="${esc(F.contact)}"><button class="btn" onclick="submitPost()">โพสต์ประกาศ</button></main>`}
 function sf(){['cat','title','desc','place','date','time','contact'].forEach(k=>{const e=$('#'+k);if(e)F[k]=e.value})}
@@ -273,9 +274,16 @@ const M=LM=L.map(el).setView(CAMPUS,17);L.tileLayer(TILE,{maxZoom:19,attribution
 S.items.filter(i=>i.lat&&i.st==='open').forEach(i=>L.marker([i.lat,i.lng],{icon:ic(i.type==='lost'?'🔴':'🟢')}).addTo(M).bindPopup(`<b>${esc(i.title)}</b><br>${esc(i.place)}<br><a href="#item-${i.id}">ดูรายละเอียด</a>`));
 if(msel&&!gate(msel)){const c=await geo(msel);if(c&&LM===M)M.setView(c,19)}
 for(const p of Object.keys(PL).filter(x=>!gate(x))){const c=await geo(p);if(LM!==M)return;if(c)L.marker(c,{icon:ic('📍')}).addTo(M).bindTooltip(p,{permanent:true,direction:'top',offset:[0,-26]})}}
+let PM=null,PMK=null;
+const dist=(a,b)=>Math.hypot((a[0]-b[0])*111e3,(a[1]-b[1])*105e3);
+function setPick(c,name){PICK=c;if(PM){if(PMK)PMK.setLatLng(c);else PMK=L.marker(c,{icon:ic('📍')}).addTo(PM)}const pl=$('#pll');if(pl)pl.textContent='ปักหมุดแล้ว ✓ (แตะอีกครั้งเพื่อย้าย)';if(name){const e=$('#place');if(e)e.value=name;F.place=name}}
+async function nameAt(c){let best=null,bd=70;for(const p of Object.keys(PL))if(GEO[p]){const d=dist(c,GEO[p]);if(d<bd){bd=d;best=p}}if(best)return best;
+try{const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=json&zoom=18&accept-language=th&lat='+c[0]+'&lon='+c[1]),j=await r.json(),a=j.address||{};return j.name||a.building||a.amenity||a.road||'ตำแหน่งที่ปักหมุด'}catch(e){return 'ตำแหน่งที่ปักหมุด'}}
+async function plChg(){const v=$('#place').value.trim();F.place=v;if(PL[v]&&!gate(v)){const c=await geo(v);if(c){if(PM)PM.setView(c,19);setPick(c)}}}
 function initPick(){const el=$('#pmap');if(!el)return;if(!window.L){el.innerHTML='<p class="mu" style="padding:16px">โหลดแผนที่ไม่ได้</p>';return}
-const M=L.map(el).setView(PICK||CAMPUS,PICK?19:17);L.tileLayer(TILE,{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(M);let mk=PICK?L.marker(PICK,{icon:ic('📍')}).addTo(M):null;
-M.on('click',e=>{PICK=[+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)];if(mk)mk.setLatLng(PICK);else mk=L.marker(PICK,{icon:ic('📍')}).addTo(M);$('#pll').textContent='ปักหมุดแล้ว ✓ (แตะอีกครั้งเพื่อย้าย)'})}
+PMK=null;const M=PM=L.map(el).setView(PICK||CAMPUS,PICK?19:17);L.tileLayer(TILE,{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(M);if(PICK)PMK=L.marker(PICK,{icon:ic('📍')}).addTo(M);
+M.on('click',async e=>{const c=[+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)];setPick(c);setPick(c,await nameAt(c))});
+(async()=>{for(const p of Object.keys(PL).filter(x=>!gate(x)))await geo(p)})()}
 const _sp=submitPost;submitPost=function(){const n=S.items.length,pk=PICK;_sp();if(S.items.length<=n)return;const it=S.items[0];if(pk){it.lat=pk[0];it.lng=pk[1]}PICK=null;save();if(!ON)return;
 rq('POST','/rest/v1/items',{type:it.type,cat:it.cat,title:it.title,descr:it.desc,place:it.place,lat:it.lat||null,lng:it.lng||null,d:it.d,contact:it.contact,by_name:it.by,st:'open',img:it.img||null},'return=representation').then(r=>{const o=it.id;it.id=r[0].id;save();pull.k='';if(location.hash==='#item-'+o)location.hash='item-'+it.id}).catch(e=>{S.items=S.items.filter(x=>x!==it);save();toast('โพสต์ไม่สำเร็จ: '+e.message);location.hash='post'})};
 const _dn=dn;dn=function(id){_dn(id);if(ON)rq('PATCH','/rest/v1/items?id=eq.'+id,{st:'done'}).catch(e=>toast('อัปเดตไม่สำเร็จ: '+e.message))};
