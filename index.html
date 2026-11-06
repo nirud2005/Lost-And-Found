@@ -121,7 +121,7 @@ const rs=()=>[...crypto.getRandomValues(new Uint8Array(12))].map(x=>x.toString(1
 const er=m=>{const e=$('#err');if(e)e.textContent=m};
 let doLogin=async function(m){
 if(m===2){
-  // เรียกใช้ Google OAuth ผ่าน Supabase พร้อมระบุ redirectTo ที่ถูกต้อง
+  // เรียกใช้ Google OAuth ผ่าน Supabase พร้อมระบุ redirectTo ที่ถูกต้อง (มีชื่อ Repo ครบถ้วน)
   if(supabaseClient){
     const { error } = await supabaseClient.auth.signInWithOAuth({
       provider: 'google',
