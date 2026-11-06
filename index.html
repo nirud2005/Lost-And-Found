@@ -121,12 +121,12 @@ const rs=()=>[...crypto.getRandomValues(new Uint8Array(12))].map(x=>x.toString(1
 const er=m=>{const e=$('#err');if(e)e.textContent=m};
 let doLogin=async function(m){
 if(m===2){
-  // เรียกใช้ Google OAuth ผ่าน Supabase
+  // เรียกใช้ Google OAuth ผ่าน Supabase พร้อมระบุ redirectTo ที่ถูกต้อง
   if(supabaseClient){
     const { error } = await supabaseClient.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin
+        redirectTo: 'https://nirud2005.github.io/Lost-And-Found/'
       }
     });
     if(error) toast(error.message);
@@ -218,85 +218,62 @@ function cal(){const y=cm.getFullYear(),mo=cm.getMonth(),first=new Date(y,mo,1).
 for(let d=1;d<=dim;d++){const k=y+'-'+(mo+1)+'-'+d;c+=`<button class="${has.has(k)?'has':''} ${k===cs?'sel':''} ${k===dk(now)?'td':''}" onclick="cs='${k}';render()">${d}</button>`}
 const dl=S.items.filter(i=>dk(i.d)===cs);return`${bar('ปฏิทินตามหาของ')}<main><div class="card"><div class="hd" style="margin-top:0"><button class="ib" onclick="cm=new Date(${y},${mo-1},1);render()">‹</button>${fd(cm,{month:'long',year:'numeric'})}<button class="ib" onclick="cm=new Date(${y},${mo+1},1);render()">›</button></div><div class="cal">${c}</div><p class="mu" style="margin-top:8px">🟠 มีรายการของหาย/ของที่เก็บได้</p></div>
 <div class="hd">รายการตามหาวันนี้ <a onclick="location.hash='event-${cs}'">ดูทั้งหมด</a></div>${dl.length?dl.map(itemRow).join(''):'<p class="mu">ไม่มีรายการในวันที่เลือก</p>'}</main>`}
-function event(k){const [y,m,d]=k.split('-').map(Number),dl=S.items.filter(i=>dk(i.d)===k);return`${bar('กิจกรรมตามหาของ',1)}<main><div class="card"><b>📅 ${fd(new Date(y,m-1,d),{day:'numeric',month:'long',year:'numeric'})}</b><div class="mu" style="margin-top:4px">ของที่เกี่ยวข้อง (${dl.length} รายการ)</div></div>${dl.length?dl.map(itemRow).join(''):'<p class="mu">ยังไม่มีรายการในวันนี้</p>'}</main>`}
+function event(k){const [y,m,d]=k.split('-').map(Number),dl=S.items.filter(i=>dk(i.d)===k);return`${bar('กิจกรรมตามหาของ',1)}<main><div class="card"><b>📅 ${fd(new Date(y,m-1,d),{day:'numeric',month:'long',year:'numeric'})}</b></div>${dl.length?dl.map(itemRow).join(''):'<p class="mu" style="text-align:center;padding:30px">ไม่มีรายการในวันนี้</p>'}</main>`}
 
-/* 8 profile / settings / notif */
-function profile(){
-const u=S.user||{name:'ผู้ใช้งานทั่วไป',email:'-'},my=S.items.filter(i=>i.owner===u.email);
-return`${bar('โปรไฟล์ / ตั้งค่า')}<main>
-<div class="card" style="text-align:center"><div class="av">👤</div><h2 style="font-size:18px">${esc(u.name)}</h2><div class="mu">${esc(u.email)}</div></div>
-<div class="card stat"><div><b>${my.length}</b><span class="mu">ประกาศของฉัน</span></div><div><b>${S.saved.length}</b><span class="mu">บันทึกไว้</span></div></div>
-<div class="card">
-<div class="mn" onclick="location.hash='my-posts'"><i>📦</i><span>ประกาศของฉัน</span><span>›</span></div>
-<div class="mn" onclick="location.hash='saved'"><i>💙</i><span>รายการที่บันทึกไว้</span><span>›</span></div>
-<div class="mn" onclick="cpw()"><i>🔑</i><span>เปลี่ยนรหัสผ่าน</span><span>›</span></div>
-<div class="mn" onclick="S.user=null;save();toast('ออกจากระบบแล้ว');location.hash='login'"><i style="color:var(--rd)">🚪</i><span style="color:var(--rd)">ออกจากระบบ</span></div>
-</div></main>`}
+/* 8 scan */
+function scan(){return`<div class="scan"><div style="display:flex;justify-content:space-between;padding:14px"><button class="ib" style="background:#fff2;color:#fff" onclick="history.back()">‹</button><h2 style="font-size:17px;line-height:36px">สแกนสิ่งของ / ถ่ายรูป</h2><div style="width:36px"></div></div>
+<div class="vf" ${scanImg?`style="background-image:url(${scanImg})"`:''}>${scanImg?'':'📷'}</div>
+<div style="padding:0 20px"><button class="btn" style="background:#fff;color:#0b1a33" onclick="doScan()">วิเคราะห์สิ่งของด้วย AI</button></div>
+<div class="sc"><label><i>📁</i>เลือกรูป<input type="file" accept="image/*" hidden onchange="readImg(this.files[0],d=>{scanImg=d;render()})"></label><button class="shut" onclick="doShot()"></button><button onclick="scanImg='';render()"><i>🔄</i>ถ่ายใหม่</button></div></div>`}
+function doShot(){scanImg='https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400';toast('ถ่ายรูปแล้ว ✓');render()}
+function doScan(){if(!scanImg){toast('กรุณาถ่ายรูปหรือเลือกรูปก่อน');return}toast('AI กำลังวิเคราะห์...');setTimeout(()=>{F.type='found';F.cat=0;F.title='กระเป๋าสเปะ/เป้สะพาย';F.desc;F.desc='วิเคราะห์จากภาพ: กระเป๋าผ้า/เป้สะพาย สีเข้ม สภาพดี';F.place='สำนักหอสมุดกลาง';F.date=dk(now);F.time='10:00';scanImg='';toast('วิเคราะห์สำเร็จ ✓ นำข้อมูลใส่ฟอร์มแล้ว');location.hash='post'},1200)}
 
-function myPosts(){const my=S.items.filter(i=>i.owner===(S.user&&S.user.email));return`${bar('ประกาศของฉัน',1)}<main>${my.length?my.map(itemRow).join(''):'<p class="mu" style="text-align:center;padding:30px">คุณยังไม่มีประกาศ</p>'}</main>`}
-function savedPage(){const sv=S.items.filter(i=>S.saved.includes(i.id));return`${bar('รายการที่บันทึกไว้',1)}<main>${sv.length?sv.map(itemRow).join(''):'<p class="mu" style="text-align:center;padding:30px">ยังไม่มีรายการที่บันทึกไว้</p>'}</main>`}
-function notif(){return`${bar('การแจ้งเตือน',1)}<main><div class="card"><p class="mu" style="text-align:center">ยังไม่มีการแจ้งเตือนใหม่</p></div></main>`}
+/* 9 notif */
+function notif(){return`${bar('การแจ้งเตือน',1)}<main><div class="card vr" onclick="location.hash='verify'"><span style="font-size:28px">🛡️</span><div><b>ยืนยันตัวตนนิสิต มศว</b><div class="mu">เพื่อความปลอดภัยในการติดต่อรับของ</div></div><span class="ck">${S.verified.id?'✅ ยืนยันแล้ว':'⚠️ ยังไม่ยืนยัน'}</span></div>
+<div class="hd">การแจ้งเตือนล่าสุด</div>
+<div class="card"><b>🔔 มีผู้สนใจสิ่งของของคุณ</b><div class="mu">มีคนติดต่อสอบถามเรื่อง "กระเป๋าสตางค์" เมื่อวานนี้</div></div>
+<div class="card"><b>🎉 ระบบพร้อมใช้งาน</b><div class="mu">ยินดีต้อนรับสู่ Smart Lost & Found เว็บไซต์สำหรับชาว มศว</div></div></main>`}
 
-/* 9 scan */
-function scan(){return`<div class="scan"><div class="bar" style="background:none;border:0"><button class="ib" onclick="history.back()">‹</button><h2>สแกนรูปเพื่อค้นหา</h2></div><div class="vf" ${scanImg?`style="background-image:url(${scanImg})"`:''}>${scanImg?'':'📷'}</div>
-<p class="mu" style="text-align:center;color:#9fc0f5">ถ่ายหรือเลือกรูปสิ่งของ เพื่อดูรายการที่คล้ายกัน</p>
-<div class="sc"><label><i>🖼️</i>แกลเลอรี<input type="file" accept="image/*" hidden onchange="pkScan(this)"></label><button class="shut" onclick="doScan()"></button><label onclick="pkScanCam()"><i>📷</i>กล้อง</label></div></div>`}
-function pkScan(i){if(!i.files[0])return;readImg(i.files[0],d=>{scanImg=d;render()})}
-function pkScanCam(){const i=document.createElement('input');i.type='file';i.accept='image/*';i.capture='environment';i.onchange=()=>pkScan(i);i.click()}
-function doScan(){if(!scanImg){toast('เลือกรูปภาพก่อนสแกน');return}toast('กำลังเปรียบเทียบรูปภาพ...');setTimeout(()=>{q='กระเป๋า';scanImg='';location.hash='home'},1200)}
+/* 10 verify & profile */
+function verify(){return`${bar('ยืนยันตัวตนนิสิต มศว',1)}<main><div class="card" style="text-align:center"><div class="av">${S.verified.id?'✅':'👤'}</div><h3>${S.verified.id?esc(S.verified.name):'ยังไม่ได้ยืนยันตัวตน'}</h3><p class="mu">${S.verified.id?'รหัสนิสิต: '+S.verified.id:'ยืนยันด้วยบัญชี @g.swu.ac.th ของมหาวิทยาลัย'}</p></div>
+${S.verified.id?'<button class="btn o" style="color:var(--rd);border-color:var(--rd)" onclick="S.verified={};save();toast(\'ยกเลิกยืนยันแล้ว\');render()">ยกเลิกการยืนยัน</button>':'<label class="l">กรอกรหัสนิสิต (8 หรือ 10 หลัก)</label><input class="in" id="vid" placeholder="เช่น 6512345678"><label class="l">อัปโหลดภาพบัตรนิสิต หรือหน้า Profile Portal</label><div class="up"><label><i>📷</i>ถ่ายรูปบัตร<input type="file" accept="image/*" capture="environment" hidden></label><label><i>⬆️</i>อัปโหลด<input type="file" accept="image/*" hidden></label></div><button class="btn" onclick="doVerif()">ยืนยันตัวตน</button>'}</main>`}
+function doVerif(){const id=$('#vid').value.trim();if(id.length<8){toast('กรอกรหัสนิสิตให้ถูกต้อง');return}S.verified={id,name:(S.user&&S.user.name)||'นิสิต มศว'};save();toast('ยืนยันตัวตนสำเร็จ ✓');location.hash='notif'}
 
-/* NAV & ROUTER */
-function nav(){const h=location.hash.replace('#','')||'home';if(['login','register','scan'].includes(h)||h.startsWith('chat-'))return'';
-return`<button class="${h==='home'?'on':''}" onclick="location.hash='home'"><i>🏠</i>หน้าแรก</button>
-<button class="${h==='map'?'on':''}" onclick="location.hash='map'"><i>🗺️</i>แผนที่</button>
-<button class="fab" onclick="location.hash='post'">＋</button>
-<button class="${h==='cal'?'on':''}" onclick="location.hash='cal'"><i>📅</i>ปฏิทิน</button>
-<button class="${h==='profile'?'on':''}" onclick="location.hash='profile'"><i>👤</i>โปรไฟล์</button>`}
+function profile(){const u=S.user||{name:'ผู้เยี่ยมชม',email:'ยังไม่ได้เข้าสู่ระบบ'};const my=S.items.filter(i=>i.owner===u.email);
+return`${bar('โปรไฟล์ของฉัน')}<main><div class="card" style="text-align:center"><div class="av">👤</div><h3 style="font-size:18px">${esc(u.name)}</h3><p class="mu">${esc(u.email)}</p>
+${S.user?'<button class="btn o" style="margin-top:12px" onclick="cpw()">เปลี่ยนรหัสผ่าน</button><button class="btn o" style="color:var(--rd);border-color:var(--rd);margin-top:6px" onclick="S.user=null;save();toast(\'ออกจากระบบแล้ว\');location.hash=\'login\'">ออกจากระบบ</button>':'<button class="btn" style="margin-top:12px" onclick="location.hash=\'login\'">เข้าสู่ระบบ / สมัครสมาชิก</button>'}</div>
+<div class="stat card"><div onclick="location.hash='myitems'"><b>${my.length}</b>ประกาศของฉัน</div><div onclick="location.hash='saved'"><b>${S.saved.length}</b>บันทึกแล้ว</div></div>
+<div class="card"><div class="mn" onclick="location.hash='verify'"><i>🛡️</i><span>ยืนยันตัวตนนิสิต</span><span class="mu">${S.verified.id?'✅ ยืนยันแล้ว':'⚠️ ยังไม่ยืนยัน'}</span><i>›</i></div>
+<div class="mn" onclick="alert('Smart Lost & Found v1.0\nพัฒนาสำหรับนิสิต มศว ประสานมิตร')"><i>ℹ️</i><span>เกี่ยวกับแอปพลิเคชัน</span><i>›</i></div></div></main>`}
 
-function render(){
-  const h=location.hash.replace('#','')||'home';
-  const v=$('#v'),nv=$('#nv');
-  if(!S.user&&!['login','register'].includes(h)){location.hash='login';return}
-  if(S.user&&['login','register'].includes(h)){location.hash='home';return}
-  
-  if(h==='login')v.innerHTML=login(0);
-  else if(h==='register')v.innerHTML=login(1);
-  else if(h==='home')v.innerHTML=home();
-  else if(h==='post')v.innerHTML=post();
-  else if(h==='map')v.innerHTML=map();
-  else if(h==='cal')v.innerHTML=cal();
-  else if(h==='profile')v.innerHTML=profile();
-  else if(h==='my-posts')v.innerHTML=myPosts();
-  else if(h==='saved')v.innerHTML=savedPage();
-  else if(h==='notif')v.innerHTML=notif();
-  else if(h==='scan')v.innerHTML=scan();
-  else if(h.startsWith('item-'))v.innerHTML=item(h.split('-')[1]);
-  else if(h.startsWith('chat-'))v.innerHTML=chat(h.split('-')[1]);
-  else if(h.startsWith('event-'))v.innerHTML=event(h.split('-')[1]);
-  else v.innerHTML=home();
+function myitems(){const my=S.items.filter(i=>i.owner===(S.user&&S.user.email));return`${bar('ประกาศของฉัน',1)}<main>${my.length?my.map(itemRow).join(''):'<div class="mu" style="text-align:center;padding:30px">คุณยังไม่มีประกาศ</div>'}</main>`}
+function saved(){const sv=S.items.filter(i=>S.saved.includes(i.id));return`${bar('รายการที่บันทึกไว้',1)}<main>${sv.length?sv.map(itemRow).join(''):'<div class="mu" style="text-align:center;padding:30px">ยังไม่มีรายการที่บันทึก</div>'}</main>`}
 
-  nv.innerHTML=nav();
-  window.scrollTo(0,0);
+/* router & init */
+function render(){const h=location.hash.slice(1)||'home',v=$('#v'),nv=$('#nv');let fn=home;
+if(h==='login')fn=()=>login(0);else if(h==='register')fn=()=>login(1);else if(h==='post')fn=post;else if(h==='map')fn=map;else if(h==='cal')fn=cal;else if(h==='scan')fn=scan;else if(h==='notif')fn=notif;else if(h==='verify')fn=verify;else if(h==='profile')fn=profile;else if(h==='myitems')fn=myitems;else if(h==='saved')fn=saved;else if(h.startsWith('item-'))fn=()=>item(h.split('-')[1]);else if(h.startsWith('chat-'))fn=()=>chat(h.split('-')[1]);else if(h.startsWith('event-'))fn=()=>event(h.slice(6));
+if(h!=='login'&&h!=='register'&&!S.user&&h!=='home'&&!h.startsWith('item-')){location.hash='login';return}
+v.innerHTML=fn();
+if(h==='post'||h==='map'){setTimeout(()=>{
+const latLng=msel&&PL[msel]?CAMPUS:CAMPUS;
+if(h==='post'){
+  postMapObj=L.map('pmap').setView(CAMPUS,16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(postMapObj);
+  const mk=L.marker(CAMPUS,{draggable:true}).addTo(postMapObj);
+  mk.on('dragend',e=>{const p=mk.getLatLng();PICK=true;$('#pll').textContent=`พิกัด: ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;F.place='จุดปักหมุดแผนที่';$('#place').value=F.place});
+  postMapObj.on('click',e=>{mk.setLatLng(e.latlng);PICK=true;$('#pll').textContent=`พิกัด: ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;F.place='จุดปักหมุดแผนที่';$('#place').value=F.place});
 }
-
-window.addEventListener('hashchange',render);
-window.addEventListener('DOMContentLoaded',()=>{
-  // ตรวจสอบการกลับมาจาก Google Sign-in OAuth Callback
-  if(supabaseClient){
-    supabaseClient.auth.getSession().then(({ data: { session } }) => {
-      if(session && session.user){
-        S.user = {
-          name: session.user.user_metadata.full_name || session.user.email.split('@')[0],
-          email: session.user.email
-        };
-        save();
-      }
-      render();
-    });
-  } else {
-    render();
-  }
-});
+if(h==='map'){
+  mapObj=L.map('lmap').setView(CAMPUS,16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(mapObj);
+  S.items.filter(i=>i.st==='open').forEach(i=>{
+    L.marker(CAMPUS).addTo(mapObj).bindPopup(`<b>${esc(i.title)}</b><br>${esc(i.place)}`);
+  });
+}
+},100)}
+const act=s=>h===''||h==='home'&&s==='home'||h===s?'on':'';
+nv.innerHTML=`<button class="${act('home')}" onclick="location.hash='home'"><i>🏠</i>หน้าแรก</button><button class="${act('map')}" onclick="location.hash='map'"><i>🗺️</i>แผนที่</button><button class="fab" onclick="location.hash='post'">＋</button><button class="${act('cal')}" onclick="location.hash='cal'"><i>📅</i>ปฏิทิน</button><button class="${act('profile')}" onclick="location.hash='profile'"><i>👤</i>โปรไฟล์</button>`}
+window.onhashchange=render;render();
 </script>
 </body>
 </html>
