@@ -10,6 +10,22 @@
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <script>tailwind.config={darkMode:'class',theme:{extend:{boxShadow:{xs:'0 1px 2px 0 rgb(0 0 0 / 0.05)','2xs':'0 1px rgb(0 0 0 / 0.05)'}}}}</script>
 <script src="https://cdn.jsdelivr.net/npm/lucide@0.400.0/dist/umd/lucide.min.js"></script>
+<script>
+/* lucide รุ่นนี้ส่งไอคอนเป็น ["svg", {attrs}, [children]] แต่โค้ดของแอปอ่านเป็นรายการ [tag, attrs] ล้วน ๆ
+   แปลงให้ตรงกันก่อนแอปเริ่มทำงาน (ไม่กระทบถ้าไลบรารีส่งรูปแบบที่แอปอ่านได้อยู่แล้ว) */
+(function(){
+  try{
+    var L=window.lucide;if(!L||!L.icons)return;
+    var src=L.icons,out={};
+    for(var k in src){
+      var v=src[k];
+      out[k]=(Array.isArray(v)&&v[0]==='svg'&&Array.isArray(v[2]))?v[2]:v;
+    }
+    try{L.icons=out;}catch(e){}
+    if(L.icons!==out)Object.defineProperty(L,'icons',{value:out,configurable:true});
+  }catch(e){console.warn('lucide icon fix failed',e);}
+})();
+</script>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
