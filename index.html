@@ -35,6 +35,12 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
   *{-webkit-tap-highlight-color:transparent}
 body{overscroll-behavior-y:none}
 
+/* จอคอมพิวเตอร์: ให้กรอบมือถือเป็นพื้นที่อ้างอิงของแถบเมนูล่าง/ปุ่มลอย (position:fixed)
+   เพื่อให้อยู่ในกรอบสีขาวพอดี ไม่ลอยตามหน้าจอเบราว์เซอร์ (บนมือถือจริงไม่ใช้กฎนี้) */
+@media (min-width:1024px){
+  div[class*="lg:ring-12"]{transform:translateZ(0)}
+}
+
 /* Custom smooth scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
