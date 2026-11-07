@@ -417,6 +417,8 @@ const SB_URL='',SB_KEY='';
     { id: 'b9', name: 'สำนักงานอธิการบดี', bld: 'อาคาร 9', desk: 'ฝ่ายรับเรื่อง ชั้น 1', hours: 'จ.–ศ. 08:30–16:30 น.', staff: 'คุณวิชัย รักษ์ดี', role: 'เจ้าหน้าที่ฝ่ายประชาสัมพันธ์' },
     { id: 'b31', name: 'อาคารเรียนรวม หลวงสวัสดิสารศาสตรพุทธิ', bld: 'อาคาร 31', desk: 'จุดรักษาความปลอดภัย ชั้น 1', hours: 'ทุกวัน 07:00–21:00 น.', staff: 'คุณมานพ ศรีสุข', role: 'หัวหน้า รปภ. อาคาร 31' }
   ];
+  var BLDS = [[1, "อาคาร 1 คณะพลศึกษา"], [2, "อาคาร 2 คณะมนุษยศาสตร์"], [3, "อาคาร 3 ประสานมิตร"], [4, "บ้าน ศ.ดร.สาโรช"], [5, "บ้าน ม.ร.ว.จุรีพรหม"], [6, "อาคาร 6 ศูนย์วิทย์"], [7, "อาคาร 7 พัฒนากายภาพ 1"], [8, "อาคาร 8 พัฒนากายภาพ 2"], [9, "อาคาร 9 สำนักงานอธิการบดี"], [10, "อาคาร 10 คณะวิทย์ 1"], [11, "อาคาร 11 คณะสังคมศาสตร์"], [12, "อาคาร 12 คณะศึกษาศาสตร์"], [13, "อาคาร 13 หอประชุมใหญ่"], [14, "อาคาร 14 เทา-แดง"], [15, "อาคาร 15 พรีคลินิก"], [16, "อาคาร 16 คณะศิลปกรรมศาสตร์"], [17, "อาคาร 17 คณะทันตแพทยศาสตร์"], [18, "อาคาร 18 กายวิภาคศาสตร์"], [19, "อาคาร 19 คณะวิทย์ 2"], [20, "อาคาร 20 บัณฑิตวิทยาลัย"], [21, "อาคาร 21 นานาชาติความยั่งยืน"], [22, "อาคาร 22 มนุษยศาสตร์ 2"], [23, "อาคาร 23 นวัตกรรมสื่อสารฯ (COSCI)"], [24, "อาคาร 24 วิจัยและศึกษาต่อเนื่องฯ"], [25, "อาคาร 25 สำนักหอสมุดกลาง"], [26, "อาคาร 26 วิจัยพฤติกรรมศาสตร์"], [27, "อาคาร 27 พัฒนาศักยภาพนิสิต"], [28, "อาคาร 28 สำนักทดสอบทางจิตวิทยา"], [29, "อาคาร 29 โรงอาหารแสนแสบ"], [30, "อาคาร 30 โรงอาหารสีเขียว"], [31, "อาคาร 31 อาคารเรียนรวม"], [32, "อาคาร 32 บริการ ม.ล.ปิ่น"], [33, "อาคาร 33 อาคารนวัตกรรม (400 ล้าน)"], [34, "อาคาร 34 ลานจอดรถ 60 ปี & สนามกีฬา"], [35, "อาคาร 35 ศูนย์สารสนเทศฯ"], [36, "อาคาร 36 หอพักเพชรไพลิน"], [37, "อาคาร 37 สาธิต มศว (ประถม)"], [38, "อาคาร 38 สาธิต มศว (มัธยม)"], [39, "อาคาร 39 อาคารสวยสะอาด"], [40, "อนุสาวรีย์ ศ.ดร.สาโรช"], [41, "อนุสาวรีย์ ม.ล.ปิ่น"], [42, "หอพระ มศว"], [43, "ศาลพระภูมิ มศว"], [44, "สหกรณ์ออมทรัพย์ มศว"], [45, "สถานบริการการแพทย์ มศว"]];   // [เลขอาคาร, ชื่อสั้น] ครบ 45 อาคาร
+  var MAIN = { 25: 1, 9: 1, 31: 1 };
   var CATS = { 'กระเป๋า': '👜', 'มือถือ': '📱', 'กุญแจ': '🔑', 'บัตรนักศึกษา': '🪪', 'เอกสาร': '📄', 'เครื่องแต่งกาย': '👕', 'อุปกรณ์การเรียน': '✏️', 'อื่น ๆ': '📦' };
   var OVERDUE_DAYS = 30, WARN_DAYS = 21;
 
@@ -507,7 +509,17 @@ const SB_URL='',SB_KEY='';
 
   /* ---------- ตัวช่วย ---------- */
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  function pt(id) { return POINTS.filter(function (p) { return p.id === (id || S.point); })[0]; }
+  function pt(id) {
+    id = id || S.point;
+    var f = POINTS.filter(function (p) { return p.id === id; })[0];
+    if (f) return f;
+    var m = /^b(\d+)$/.exec(id), n = m && +m[1];
+    var b = BLDS.filter(function (x) { return x[0] === n; })[0];
+    if (!b) return POINTS[0];
+    return { id: id, name: b[1].replace(/^อาคาร \d+\s*/, '') || b[1], bld: 'อาคาร ' + n, desk: 'จุดรับฝากประจำอาคาร', hours: 'ตามเวลาทำการของอาคาร', staff: 'เจ้าหน้าที่ประจำอาคาร', role: 'เจ้าหน้าที่ประจำอาคาร' };
+  }
+  function otherPoints() { return BLDS.filter(function (x) { return !MAIN[x[0]]; }).map(function (x) { return 'b' + x[0]; }); }
+  function countAt(id) { return S.items.filter(function (x) { return x.point === id && x.status === 'held'; }).length; }
   function item(id) { return S.items.filter(function (x) { return x.id === id; })[0]; }
   function claim(id) { return S.claims.filter(function (x) { return x.id === id; })[0]; }
   function days(x) { return Math.max(0, Math.floor((Date.now() - x.receivedAt) / D)); }
@@ -811,6 +823,11 @@ const SB_URL='',SB_KEY='';
           '<div class="flex items-center justify-between"><p class="text-xs font-bold text-slate-900">' + esc(p.name) + '</p>' + (on ? pill('กำลังใช้งาน', 'indigo') : '') + '</div>' +
           '<p class="text-[11px] text-slate-500">' + esc(p.bld) + ' · ' + esc(p.role) + ': ' + esc(p.staff) + '</p><p class="text-[11px] text-slate-400">ของที่ถืออยู่ ' + n + ' ชิ้น</p></button>';
       }).join('') +
+      '<p class="text-[11px] font-bold text-slate-500 pt-1">อาคารอื่น ๆ (' + otherPoints().length + ' อาคาร)</p>' +
+      '<div class="grid grid-cols-1 gap-1.5">' + otherPoints().map(function (id) {
+        var p = pt(id), on = id === S.point, n = countAt(id);
+        return '<button data-a="point-set" data-id="' + id + '" class="w-full text-left rounded-xl border px-3 py-2 flex items-center justify-between ' + (on ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 bg-white') + '"><span class="min-w-0"><span class="block text-xs font-bold text-slate-800 truncate">' + esc(p.bld) + ' ' + esc(p.name) + '</span><span class="block text-[10px] text-slate-400">ของที่ถืออยู่ ' + n + ' ชิ้น</span></span>' + (on ? pill('กำลังใช้งาน', 'indigo') : '') + '</button>';
+      }).join('') + '</div>' +
       '<div class="pt-2 border-t border-slate-100">' + btn('reset-open', 'รีเซ็ตข้อมูลเดโม่เป็นค่าเริ่มต้น', 'ghost') + '</div>');
   }
   function sheetTransfer(x) {
@@ -819,6 +836,11 @@ const SB_URL='',SB_KEY='';
       POINTS.filter(function (p) { return p.id !== S.point; }).map(function (p) {
         return '<button data-a="transfer-do" data-id="' + x.id + '" data-to="' + p.id + '" class="w-full text-left rounded-2xl border border-slate-200 bg-white p-3 hover:border-indigo-400">' +
           '<p class="text-xs font-bold text-slate-900">' + esc(p.name) + ' · ' + esc(p.bld) + '</p><p class="text-[11px] text-slate-500">' + esc(p.desk) + ' · ' + esc(p.hours) + '</p></button>';
+      }).join('') +
+      '<p class="text-[11px] font-bold text-slate-500 pt-1">อาคารอื่น ๆ</p>' +
+      otherPoints().filter(function (id) { return id !== S.point; }).map(function (id) {
+        var p = pt(id);
+        return '<button data-a="transfer-do" data-id="' + x.id + '" data-to="' + id + '" class="w-full text-left rounded-xl border border-slate-200 bg-white px-3 py-2 hover:border-indigo-400 text-xs font-bold text-slate-800 truncate">' + esc(p.bld) + ' ' + esc(p.name) + '</button>';
       }).join(''), true);
   }
   function sheetReset() {
